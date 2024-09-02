@@ -97,8 +97,8 @@ CREATE INDEX "IDX_TRAFFIC_ALERT_GEO" ON TRAFFIC_ALERT ("LATITUDE", "LONGITUDE");
 PM2를 사용하여 서버와 스케줄러를 시작합니다:
 
 ```bash
-pm2 start index.js --name traffic-server
-pm2 start schedule.js --name traffic-scheduler --cron "*/5 * * * *"
+pm2 start "npm run start" --name traffic-server
+pm2 start "npm run schedule" --name traffic-scheduler --cron "*/5 * * * *"
 ```
 
 이 명령은 다음을 시작합니다:

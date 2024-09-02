@@ -9,7 +9,7 @@
     "schedule": "node --env-file=.env schedule.js"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.19.2",
     "fast-xml-parser": "^4.4.1",
