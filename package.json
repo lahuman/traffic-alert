@@ -1,0 +1,18 @@
+{
+  "name": "traffic-alert",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --env-file=.env index.js",
+    "schedule": "node --env-file=.env schedule.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "fast-xml-parser": "^4.4.1",
+    "postgres": "^3.4.4"
+  }
+}
