@@ -28,51 +28,71 @@ const sido_gugun_map_with_codes = {
     50: [130, 110]
 }
 
-const SQL_TEMPLATE = (r, year) => `
-                INSERT INTO WALK_ALERT
-                    (ID, ADDRESS, OCCXRRNC_CNT,LATITUDE, LONGITUDE, YEAR)
-                    VALUES('${r.afos_fid}', '${r.spot_nm}', '${r.occrrnc_cnt}', '${r.la_crd}', '${r.lo_crd}', '${year}')
-                        ON CONFLICT(ID) 
-                        DO UPDATE SET
-                            ADDRESS = EXCLUDED.ADDRESS,
-                            OCCXRRNC_CNT = EXCLUDED.OCCXRRNC_CNT,
-                            LATITUDE = EXCLUDED.LATITUDE,
-                            LONGITUDE = EXCLUDED.LONGITUDE               
-            `
-async function main() {
-    const sidoList = Object.keys(sido_gugun_map_with_codes)
-    let loop_len = sidoList.length;
-    let startTime = new Date();
-    for (let y = 2021; y < 2024; y++) {
+
+
+// SQL template generator function
+const generateSQL = (record, year) => `
+    INSERT INTO WALK_ALERT
+        (ID, ADDRESS, OCCXRRNC_CNT, LATITUDE, LONGITUDE, YEAR)
+    VALUES (
+        '${record.afos_fid}', 
+        '${record.spot_nm}', 
+        '${record.occrrnc_cnt}', 
+        '${record.la_crd}', 
+        '${record.lo_crd}', 
+        '${year}'
+    )
+    ON CONFLICT(ID) 
+    DO UPDATE SET
+        ADDRESS = EXCLUDED.ADDRESS,
+        OCCXRRNC_CNT = EXCLUDED.OCCXRRNC_CNT,
+        LATITUDE = EXCLUDED.LATITUDE,
+        LONGITUDE = EXCLUDED.LONGITUDE
+`;
+
+// Fetch data from the API and parse the XML response
+const fetchData = async (year, sido, gugun) => {
+    const url = `https://opendata.koroad.or.kr/data/rest/frequentzone/pedstrians?authKey=${process.env.WALK_TOKEN}&searchYearCd=${year}&siDo=${sido}&guGun=${gugun}`;
+    const resXml = await fetch(url).then(res => res.text());
+    return parser.parse(resXml);
+};
+
+// Process the fetched data and execute SQL statements
+const processData = async (data, year) => {
+    const totalCount = data?.response?.body?.totalCount;
+    if (totalCount === 0) return;
+
+    const items = data.response.body.items.item;
+    const records = Array.isArray(items) ? items : [items];
+    
+    for (const record of records) {
+        if (record) {
+            const sql = generateSQL(record, year);
+            await pgExecute.unsafe(sql);
+        }
+    }
+};
+
+// Main function to orchestrate the data fetching and processing
+const main = async () => {
+    const sidoList = Object.keys(sidoGugunMapWithCodes);
+    const startTime = new Date();
+
+    for (let year = 2021; year <= 2023; year++) {
         for (let s = 0; s < sidoList.length; s++) {
-            progressBar.progressBar(s, loop_len, startTime);
-            const gubunList = sido_gugun_map_with_codes[sidoList[s]];
-            for (let g = 0; g < gubunList.length; g++) {
-                const resXml = await fetch(`https://opendata.koroad.or.kr/data/rest/frequentzone/pedstrians?authKey=${process.env.WALK_TOKEN}&searchYearCd=${y}&siDo=${sidoList[s]}&guGun=${gubunList[g]}`)
-                    .then(res => res.text());
+            const sido = sidoList[s];
+            const gugunList = sidoGugunMapWithCodes[sido];
 
-                const jObj = parser.parse(resXml);
+            progressBar.progressBar(s, sidoList.length, startTime);
 
-                if (jObj.response.body.totalCount == 0) continue;
-
-                if (Array.isArray(jObj.response.body.items.item)) {
-                    const sqlList = jObj.response.body.items.item.map(r => SQL_TEMPLATE(r, y));
-
-                    for (let i = 0; i < sqlList.length; i++) {
-                        // console.log(sqlList[i]);
-                        await pgExecute.unsafe(`${sqlList[i]}`);
-                    }
-                } else {
-                    if (jObj.response.body.items.item != '')
-                        await pgExecute.unsafe(SQL_TEMPLATE(jObj.response.body.items.item, y));
-                }
+            for (const gugun of gugunList) {
+                const data = await fetchData(year, sido, gugun);
+                await processData(data, year);
             }
         }
     }
 
     pgExecute.end();
-
-
-}
+};
 
 main();
