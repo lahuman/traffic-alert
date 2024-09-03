@@ -87,7 +87,8 @@ const main = async () => {
 
             for (const gugun of gugunList) {
                 const data = await fetchData(year, sido, gugun);
-                if(data.response.header.resultCode != 0) {
+                // body 가 없는 상황에서 오류 발생 처리 
+                if(!data.response.body && data.response.header.resultCode != 0) {
                     throw Error(data.response.header.resultMsg)
                 }
 
