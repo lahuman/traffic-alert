@@ -46,7 +46,8 @@ DB_PORT=your_postgres_port
 DB_DB=your_database_name
 DB_USER=your_database_user
 DB_PW=your_database_password
-TOKEN=your_external_api_token
+TRAFFIC_TOKEN=your_traffic_api_token
+WALK_TOKEN=your_walk_api_token
 AUTH_KEY=your_api_token
 ```
 
@@ -75,21 +76,34 @@ PostgreSQL 컨테이너에 접속하여 PostGIS 확장을 초기화합니다
 
 ```sql
 CREATE EXTENSION postgis;
-
 CREATE TABLE TRAFFIC_ALERT (
-	"ID" VARCHAR(100) NOT NULL,
-	"ADDRESS" VARCHAR(200) NULL,
-	"TITLE" VARCHAR(500) NULL,
-	"TYPE_CD" VARCHAR(4) NOT NULL,
-	"SUB_CD" VARCHAR(4) NOT NULL,
-	"LATITUDE" DOUBLE PRECISION NOT NULL,
-	"LONGITUDE" DOUBLE PRECISION NOT NULL,
-	"START_DTM" TIMESTAMP NULL,
-	"END_DTM" TIMESTAMP NULL,
-	"UPDATE_DTM" TIMESTAMP NULL,
-	CONSTRAINT "PK_TRAFFIC_ALERT" PRIMARY KEY ("ID")
+	ID VARCHAR(100) NOT NULL,
+	ADDRESS VARCHAR(200) NULL,
+	TITLE VARCHAR(500) NULL,
+	TYPE_CD VARCHAR(4) NOT NULL,
+	SUB_CD VARCHAR(4) NOT NULL,
+	LATITUDE DOUBLE PRECISION NOT NULL,
+	LONGITUDE DOUBLE PRECISION NOT NULL,
+	START_DTM TIMESTAMP NULL,
+	END_DTM TIMESTAMP NULL,
+	UPDATE_DTM TIMESTAMP NULL,
+	CONSTRAINT PK_TRAFFIC_ALERT PRIMARY KEY (ID)
 );
-CREATE INDEX "IDX_TRAFFIC_ALERT_GEO" ON TRAFFIC_ALERT ("LATITUDE", "LONGITUDE");
+
+CREATE INDEX IDX_TRAFFIC_ALERT_GEO ON TRAFFIC_ALERT (LATITUDE, LONGITUDE);
+
+CREATE TABLE WALK_ALERT (
+	ID INTEGER PRIMARY KEY,
+	ADDRESS VARCHAR(200),
+	YEAR VARCHAR(4),
+	OCCXRRNC_CNT INT,
+	LATITUDE DOUBLE PRECISION NOT NULL,
+	LONGITUDE DOUBLE PRECISION NOT NULL,
+	REG_DTM TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IDX_LAT_LONG ON WALK_ALERT (LATITUDE, LONGITUDE);
+
 ```
 
 ### 6. 애플리케이션 시작
@@ -98,7 +112,9 @@ PM2를 사용하여 서버와 스케줄러를 시작합니다:
 
 ```bash
 pm2 start "npm run start" --name traffic-server
-pm2 start "npm run schedule" --name traffic-scheduler --cron "*/5 * * * *"
+pm2 start "npm run t-schedule" --name traffic-scheduler --cron "*/5 * * * *"
+# 1회만 실행
+npm run w-schedule
 ```
 
 이 명령은 다음을 시작합니다:
@@ -124,13 +140,13 @@ pm2 restart traffic-scheduler
 
   이 엔드포인트는 지정된 위도와 경도 근처의 교통 사고를 반환합니다.
 
-#### 예시 요청
+### 도로 돌발 상황
 
 ```bash
 curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636" -H "authkey: AUTH_KEY"
 ```
 
-### 응답 예제 
+#### 응답 예제 
 
 ```json
 [
@@ -149,6 +165,30 @@ curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636"
 ]
 ```
 
+### 보행자 사고 다발 지역 
+
+```bash
+curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636" -H "authkey: AUTH_KEY"
+```
+
+#### 응답 예제 
+
+```json
+[
+    {
+        "distance": 0,
+        "id": 6779261,
+        "address": "서울특별시 강남구 청담동(강남구청역사거리 부근)",
+        "year": "2021",
+        "occxrrnc_cnt": 7,
+        "latitude": 37.517132005639,
+        "longitude": 127.040862919289,
+        "reg_dtm": "2024-09-02T21:11:22.537Z"
+    }
+]
+```
+
+
 ## 기여하기
 
 이 프로젝트에 기여하고 싶다면, 저장소를 포크한 후 풀 리퀘스트를 제출해주세요. 모든 기여를 환영합니다!
@@ -160,5 +200,6 @@ curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636"
 ## 참고 자료
 
 - [도시교통정보센터-돌발정보](https://www.utic.go.kr/map/map.do?menu=incident&x=127.028&y=37.263)
+- [보행자 사고다발지역 API](https://opendata.koroad.or.kr/api/selectPedstriansDataSet.do)
 - [docker-postgis](https://registry.hub.docker.com/r/postgis/postgis/)
 - [NodeJS-ProgressBar](https://github.com/mratanusarkar/NodeJS-ProgressBar)

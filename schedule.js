@@ -1,3 +1,6 @@
+/**
+ * 도로 돌발 정보 
+ */
 const { XMLParser } = require("fast-xml-parser");
 const pgExecute = require('./db');
 const progressBar = require('./progressBar');
@@ -26,26 +29,26 @@ function parseDate(dateString) {
 
 async function main() {
 
-    const resXml = await fetch(`http://www.utic.go.kr/guide/imsOpenData.do?key=${process.env.TOKEN}`)
+    const resXml = await fetch(`http://www.utic.go.kr/guide/imsOpenData.do?key=${process.env.TRAFFIC_TOKEN}`)
         .then(res => res.text());
 
     const jObj = parser.parse(resXml);
 
     const sqlList = jObj.result.record.map(r => `
-        INSERT INTO public.traffic_alert
-            ("ID", "ADDRESS", "TITLE", "TYPE_CD", "SUB_CD", "LATITUDE", "LONGITUDE", "START_DTM", "END_DTM", "UPDATE_DTM")
+        INSERT INTO traffic_alert
+            (ID, ADDRESS, TITLE, TYPE_CD, SUB_CD, LATITUDE, LONGITUDE, START_DTM, END_DTM, UPDATE_DTM)
             VALUES('${r.incidentId}', '${r.addressJibun}', '${r.incidentTitle}', '${r.incidenteTypeCd}', '${r.incidenteSubTypeCd}', ${r.locationDataY}, ${r.locationDataX}, '${parseDate(r.startDate)}', '${parseDate(r.endDate)}', '${parseDate(r.updateDate)}')
-                ON CONFLICT("ID") 
+                ON CONFLICT(ID) 
                 DO UPDATE SET
-                    "ADDRESS" = EXCLUDED."ADDRESS",
-                    "TITLE" = EXCLUDED."TITLE",
-                    "TYPE_CD" = EXCLUDED."TYPE_CD",
-                    "SUB_CD" = EXCLUDED."SUB_CD",
-                    "LATITUDE" = EXCLUDED."LATITUDE",
-                    "LONGITUDE" = EXCLUDED."LONGITUDE",
-                    "START_DTM" = EXCLUDED."START_DTM",
-                    "END_DTM" = EXCLUDED."END_DTM",
-                    "UPDATE_DTM" = EXCLUDED."UPDATE_DTM"
+                    ADDRESS = EXCLUDED.ADDRESS,
+                    TITLE = EXCLUDED.TITLE,
+                    TYPE_CD = EXCLUDED.TYPE_CD,
+                    SUB_CD = EXCLUDED.SUB_CD,
+                    LATITUDE = EXCLUDED.LATITUDE,
+                    LONGITUDE = EXCLUDED.LONGITUDE,
+                    START_DTM = EXCLUDED.START_DTM,
+                    END_DTM = EXCLUDED.END_DTM,
+                    UPDATE_DTM = EXCLUDED.UPDATE_DTM
     `);
 
 
