@@ -8,7 +8,7 @@ const progressBar = require('./progressBar');
 const parser = new XMLParser();
 
 
-const sido_gugun_map_with_codes = {
+const sidoGugunMapWithCodes = {
     11: [680, 740, 305, 500, 620, 215, 530, 545, 350, 320, 230, 590, 440, 410, 650, 200, 290, 710, 470, 560, 170, 380, 110, 140, 260],
     26: [440, 410, 710, 290, 170, 260, 230, 320, 530, 380, 140, 500, 470, 200, 110, 350],
     27: [200, 290, 710, 140, 230, 170, 260, 110, 720],
@@ -87,6 +87,10 @@ const main = async () => {
 
             for (const gugun of gugunList) {
                 const data = await fetchData(year, sido, gugun);
+                if(data.response.header.resultCode != 0) {
+                    throw Error(data.response.header.resultMsg)
+                }
+
                 await processData(data, year);
             }
         }
