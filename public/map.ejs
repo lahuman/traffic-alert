@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Traffic Incident Map</title>
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <style>
+      #map {
+        height: 600px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Traffic Incident Map</h1>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      // Initialize the map with Seoul as the default location
+      const map = L.map("map").setView([37.5665, 126.978], 13); // Seoul's center
+
+      let lat = 37.5665;
+      let lon = 126.978;
+      // Add a tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      // Function to handle successful location acquisition
+      function onLocationFound(e) {
+        const { latitude, longitude } = e.coords;
+        lat = latitude;
+        lon = longitude;
+        // Add a marker for the user's location
+        const userMarker = L.marker([latitude, longitude])
+          .addTo(map)
+          .bindPopup("You are here!")
+          .openPopup();
+
+        // Set map view to user's location
+        map.setView([latitude, longitude], 15);
+
+        fetch(`http://localhost:3000/walk-alert?lat=${lat}&lon=${lon}`, {
+          headers: {
+            "Content-Type": "application/json",
+            authKey: "<%= authKey %>",
+          },
+        }) .then((response) => {
+            if(response.status  == 200) return response.json();
+
+            return [];
+          })
+          .then((data) => {
+            // Process each incident
+            data.forEach((incident) => {
+              // Add a marker for each incident
+              const marker = L.marker([
+                incident.latitude,
+                incident.longitude,
+              ]).addTo(map);
+
+              // Bind a popup to the marker
+              marker.bindPopup(`
+                <b>${incident.title}</b><br>
+                ${incident.address}<br>
+                Year: ${incident.year}<br>
+                Occurrence Count: ${incident.end_dtm}
+            `);
+            });
+          })
+          .catch((error) =>
+            console.error("Error fetching incident data:", error)
+          );
+        
+        // Fetch incident data from the API
+        fetch(`http://localhost:3000/traffic-alert?lat=${lat}&lon=${lon}`, {
+          headers: {
+            "Content-Type": "application/json",
+            authKey: "<%= authKey %>",
+          },
+        }) 
+          .then((response) => {
+            if(response.status  == 200) return response.json();
+
+            return [];
+          })
+          .then((data) => {
+            // Process each incident
+            data.forEach((incident) => {
+              // Add a marker for each incident
+              const marker = L.marker([
+                incident.latitude,
+                incident.longitude,
+              ]).addTo(map);
+
+              // Bind a popup to the marker
+              marker.bindPopup(`
+                <b>${incident.title}</b><br>
+                ${incident.address}<br>
+                Start: ${incident.start_dtm}<br>
+                End: ${incident.end_dtm}<br>
+                Last Updated: ${incident.update_dtm}
+            `);
+            });
+          })
+          .catch((error) =>
+            console.error("Error fetching incident data:", error)
+          );
+      }
+
+      // Function to handle errors
+      function onLocationError(e) {
+        console.error("Error retrieving location:", e.message);
+        alert("Unable to retrieve your location.");
+      }
+
+      // Get user's current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          onLocationFound,
+          onLocationError
+        );
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    </script>
+  </body>
+</html>
