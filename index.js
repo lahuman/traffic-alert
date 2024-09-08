@@ -28,10 +28,19 @@ app.get("/map", (req, res) => {
   res.render("map", { authKey: process.env.AUTH_KEY });
 });
 
-app.get("/traffic-alert", authMiddleware, async (req, res) => {
+function getParameter(req) {
   const lat = parseFloat(req.query.lat);
   const lon = parseFloat(req.query.lon);
+  const radius = parseFloat(req.query.radius);
 
+  return {
+    lat,
+    lon,
+    radius,
+  };
+}
+app.get("/traffic-alert", authMiddleware, async (req, res) => {
+  const { lat, lon, radius } = getParameter(req);
   if (!lat || !lon) {
     return res.status(400).send("Bad Request: Missing or invalid lat/lon");
   }
@@ -48,7 +57,8 @@ app.get("/traffic-alert", authMiddleware, async (req, res) => {
         ST_DWithin(
                 geography(ST_SetSRID(ST_Point(LONGITUDE, LATITUDE), 4326)),
                 geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)),
-            500 -- 500M
+            -- 500 -- 500M
+            ${isNaN(radius) ? parseFloat(process.env.TRAFFIC_RADIUS) : radius}
             )
             AND START_DTM <= NOW()
             AND END_DTM >= NOW()
@@ -63,8 +73,7 @@ app.get("/traffic-alert", authMiddleware, async (req, res) => {
 });
 
 app.get("/walk-alert", authMiddleware, async (req, res) => {
-  const lat = parseFloat(req.query.lat);
-  const lon = parseFloat(req.query.lon);
+  const { lat, lon, radius } = getParameter(req);
 
   if (!lat || !lon) {
     return res.status(400).send("Bad Request: Missing or invalid lat/lon");
@@ -82,7 +91,8 @@ app.get("/walk-alert", authMiddleware, async (req, res) => {
           ST_DWithin(
                   geography(ST_SetSRID(ST_Point(LONGITUDE, LATITUDE), 4326)),
                   geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)),
-              50 -- 50M
+              -- 50 -- 50M
+              ${isNaN(radius) ? parseFloat(process.env.WALK_RADIUS) : radius}
               )
           order by distance   
     `;
