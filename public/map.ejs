@@ -168,13 +168,13 @@
         drawRadiusCircle(lat, lon, 5000); // Draw a 5km circle
 
         const walkAlerts = await fetchData(
-          `http://localhost:3000/walk-alert?lat=${lat}&lon=${lon}&radius=5000`,
+          `/walk-alert?lat=${lat}&lon=${lon}&radius=5000`,
           walkIcon
         );
         walkAlerts.forEach((incident) => createMarker(incident));
 
         const trafficAlerts = await fetchData(
-          `http://localhost:3000/traffic-alert?lat=${lat}&lon=${lon}&radius=5000`,
+          `/traffic-alert?lat=${lat}&lon=${lon}&radius=5000`,
           trafficIcon
         );
         trafficAlerts.forEach((incident) => createMarker(incident));
