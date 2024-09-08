@@ -1,4 +1,3 @@
-
 # 교통 사고 알림 시스템
 
 ## 개요
@@ -49,6 +48,9 @@ DB_PW=your_database_password
 TRAFFIC_TOKEN=your_traffic_api_token
 WALK_TOKEN=your_walk_api_token
 AUTH_KEY=your_api_token
+# 반경 M 조회 기준
+WALK_RADIUS=50
+TRAFFIC_RADIUS=500
 ```
 
 ### 3. Docker를 이용한 PostgreSQL과 PostGIS 시작
@@ -58,7 +60,6 @@ docker run --name some-postgis -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpasswor
 ```
 
 이 명령어는 PostgreSQL과 PostGIS 컨테이너를 시작합니다.
-
 
 ### 4. Node.js 의존성 설치
 
@@ -72,7 +73,7 @@ PostgreSQL 컨테이너에 접속하여 PostGIS 확장을 초기화합니다
 
 그런 다음 다음 SQL 명령을 실행합니다
 
-교통 정보를 저장할 테이블을 생성합니다. 
+교통 정보를 저장할 테이블을 생성합니다.
 
 ```sql
 CREATE EXTENSION postgis;
@@ -118,6 +119,7 @@ npm run w-schedule
 ```
 
 이 명령은 다음을 시작합니다:
+
 - `index.js`: API 요청을 처리하는 서버.
 - `schedule.js`: 5분마다 교통 데이터를 가져와 갱신하는 스크립트.
 
@@ -146,48 +148,55 @@ pm2 restart traffic-scheduler
 curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636" -H "authkey: AUTH_KEY"
 ```
 
-#### 응답 예제 
+#### 응답 예제
 
 ```json
 [
-    {
-        "id": "incident_123",
-        "address": "Guro-gu, Seoul",
-        "title": "Traffic accident on the main road",
-        "type_cd": "accident",
-        "sub_cd": "collision",
-        "latitude": 37.4959854,
-        "longitude": 126.8879636,
-        "start_dtm": "2023-09-01 10:00",
-        "end_dtm": "2023-09-01 12:00",
-        "update_dtm": "2023-09-01 10:05"
-    }
+  {
+    "id": "incident_123",
+    "address": "Guro-gu, Seoul",
+    "title": "Traffic accident on the main road",
+    "type_cd": "accident",
+    "sub_cd": "collision",
+    "latitude": 37.4959854,
+    "longitude": 126.8879636,
+    "start_dtm": "2023-09-01 10:00",
+    "end_dtm": "2023-09-01 12:00",
+    "update_dtm": "2023-09-01 10:05"
+  }
 ]
 ```
 
-### 보행자 사고 다발 지역 
+### 보행자 사고 다발 지역
 
 ```bash
 curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636" -H "authkey: AUTH_KEY"
 ```
 
-#### 응답 예제 
+#### 응답 예제
 
 ```json
 [
-    {
-        "distance": 0,
-        "id": 6779261,
-        "address": "서울특별시 강남구 청담동(강남구청역사거리 부근)",
-        "year": "2021",
-        "occxrrnc_cnt": 7,
-        "latitude": 37.517132005639,
-        "longitude": 127.040862919289,
-        "reg_dtm": "2024-09-02T21:11:22.537Z"
-    }
+  {
+    "distance": 0,
+    "id": 6779261,
+    "address": "서울특별시 강남구 청담동(강남구청역사거리 부근)",
+    "year": "2021",
+    "occxrrnc_cnt": 7,
+    "latitude": 37.517132005639,
+    "longitude": 127.040862919289,
+    "reg_dtm": "2024-09-02T21:11:22.537Z"
+  }
 ]
 ```
 
+### 지도로 확인하는 특별 교통 정보
+
+API 서버 실행 후, `http://localhost:3000/map` 으로 접근하면 아래와 같은 지도를 확인 할 수 있습니다
+
+![](/screenshot.png)
+
+지도 중심에서 5KM 반경으로 특별 교통 정보를 표기 합니다. 반경은 원으로 표기 하여 알 수 있게 합니다. 
 
 ## 기여하기
 
@@ -203,3 +212,4 @@ curl -X GET "http://localhost:3000/traffic-alert?lat=37.4959854&lon=126.8879636"
 - [보행자 사고다발지역 API](https://opendata.koroad.or.kr/api/selectPedstriansDataSet.do)
 - [docker-postgis](https://registry.hub.docker.com/r/postgis/postgis/)
 - [NodeJS-ProgressBar](https://github.com/mratanusarkar/NodeJS-ProgressBar)
+- [openstreetmap](https://www.openstreetmap.org/)

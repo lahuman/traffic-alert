@@ -1,230 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Traffic Incident Map</title>
-    <!-- Leaflet CSS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <!-- Font Awesome CSS -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <style>
-      #map {
-        height: 600px;
-        width: 100%;
-        position: relative;
-      }
-      #recenter-button {
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 10px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-      }
-      #recenter-button i {
-        margin-right: 5px;
-      }
-      #recenter-button:hover {
-        background-color: #0056b3;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Traffic Incident Map</h1>
-    <div id="map">
-      <button id="recenter-button">
-        <i class="fas fa-sync-alt"></i> Map centered re-search
-      </button>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Special Transportation Information</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Font Awesome CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+    #map {
+      height: 600px;
+      width: 100%;
+      position: relative;
+    }
+    #recenter-button {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+    #recenter-button i {
+      margin-right: 5px;
+    }
+    #recenter-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Special Transportation Information</h1>
+  <div id="map">
+    <button id="recenter-button">
+      <i class="fas fa-sync-alt"></i> Map Centered Re-search
+    </button>
+  </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-      const map = L.map("map").setView([37.5665, 126.978], 13);
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map("map").setView([37.5665, 126.978], 13);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    const walkIcon = L.divIcon({
+      className: "custom-icon",
+      html: '<i class="fas fa-walking" style="color: orange; font-size: 24px;"></i>',
+      iconSize: [32, 32],
+    });
+
+    const trafficIcon = L.divIcon({
+      className: "custom-icon",
+      html: '<i class="fas fa-car" style="color: red; font-size: 24px;"></i>',
+      iconSize: [32, 32],
+    });
+
+    let userMarker;
+    let radiusCircle;
+
+    function formatDate(isoDateString) {
+      const date = new Date(isoDateString);
+
+      // Extract components
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+
+      // Format as "년-월-일 시:분"
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    async function fetchData(url, icon) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            authKey: "<%= authKey %>",
+          },
+        });
+
+        if (response.status !== 200) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const data = await response.json();
+        return data.map((incident) => ({
+          ...incident,
+          icon,
+        }));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        return [];
+      }
+    }
+
+    function createMarker({
+      latitude,
+      longitude,
+      title,
+      address,
+      start_dtm,
+      end_dtm,
+      update_dtm,
+      icon,
+      year,
+      occxrrnc_cnt,
+    }) {
+      const marker = L.marker([latitude, longitude], { icon }).addTo(map);
+
+      let popupContent = `<b>${title ? title : address}</b><br>`;
+      if (start_dtm) popupContent += `Start: ${formatDate(start_dtm)}<br>`;
+      if (end_dtm) popupContent += `End: ${formatDate(end_dtm)}<br>`;
+      if (update_dtm) popupContent += `Last Updated: ${formatDate(update_dtm)}<br>`;
+      if (occxrrnc_cnt) popupContent += `Occurrence Count: ${occxrrnc_cnt}<br>`;
+      if (year) popupContent += `Year: ${year}<br>`;
+
+      marker.bindPopup(popupContent);
+    }
+
+    function clearMarkers() {
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker && layer !== userMarker) {
+          map.removeLayer(layer);
+        }
+        if (layer instanceof L.Circle) {
+          map.removeLayer(layer);
+        }
+      });
+    }
+
+    function drawRadiusCircle(lat, lon, radius) {
+      if (radiusCircle) {
+        map.removeLayer(radiusCircle);
+      }
+      radiusCircle = L.circle([lat, lon], {
+        color: "blue",
+        fillColor: "#0000ff",
+        fillOpacity: 0.2,
+        radius: radius,
       }).addTo(map);
+    }
 
-      const walkIcon = L.divIcon({
-        className: "custom-icon",
-        html: '<i class="fas fa-walking" style="color: orange; font-size: 24px;"></i>',
-        iconSize: [32, 32],
+    async function changeLocation(lat, lon) {
+      clearMarkers();
+
+      drawRadiusCircle(lat, lon, 5000); // Draw a 5km circle
+
+      const walkAlerts = await fetchData(
+        `/walk-alert?lat=${lat}&lon=${lon}&radius=5000`,
+        walkIcon
+      );
+      walkAlerts.forEach((incident) => createMarker(incident));
+
+      const trafficAlerts = await fetchData(
+        `/traffic-alert?lat=${lat}&lon=${lon}&radius=5000`,
+        trafficIcon
+      );
+      trafficAlerts.forEach((incident) => createMarker(incident));
+    }
+
+    function onLocationFound(e) {
+      const { latitude, longitude } = e.coords;
+
+      if (userMarker) {
+        map.removeLayer(userMarker);
+      }
+
+      userMarker = L.marker([latitude, longitude], {
+        icon: L.icon({
+          iconUrl:
+            "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+        }),
+      })
+        .addTo(map)
+        .bindPopup("You are here!")
+        .openPopup();
+
+      map.setView([latitude, longitude], 15);
+
+      changeLocation(latitude, longitude);
+    }
+
+    function onLocationError(e) {
+      console.error("Error retrieving location:", e.message);
+      alert("Unable to retrieve your location.");
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        onLocationFound,
+        onLocationError
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+
+    document
+      .getElementById("recenter-button")
+      .addEventListener("click", () => {
+        const center = map.getCenter();
+        changeLocation(center.lat, center.lng);
       });
-
-      const trafficIcon = L.divIcon({
-        className: "custom-icon",
-        html: '<i class="fas fa-car" style="color: red; font-size: 24px;"></i>',
-        iconSize: [32, 32],
-      });
-
-      let userMarker;
-      let radiusCircle;
-
-      function formatDate(isoDateString) {
-        const date = new Date(isoDateString);
-
-        // Extract components
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-        const day = String(date.getDate()).padStart(2, "0");
-        const hours = String(date.getHours()).padStart(2, "0");
-        const minutes = String(date.getMinutes()).padStart(2, "0");
-
-        // Format as "년-월-일 시:분"
-        return `${year}-${month}-${day} ${hours}:${minutes}`;
-      }
-
-      async function fetchData(url, icon) {
-        try {
-          const response = await fetch(url, {
-            headers: {
-              "Content-Type": "application/json",
-              authKey: "<%= authKey %>",
-            },
-          });
-
-          if (response.status !== 200) {
-            throw new Error("Failed to fetch data");
-          }
-
-          const data = await response.json();
-          return data.map((incident) => ({
-            ...incident,
-            icon,
-          }));
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          return [];
-        }
-      }
-
-      function createMarker({
-        latitude,
-        longitude,
-        title,
-        address,
-        start_dtm,
-        end_dtm,
-        update_dtm,
-        icon,
-        year,
-        occxrrnc_cnt,
-      }) {
-        const marker = L.marker([latitude, longitude], { icon }).addTo(map);
-
-        let popupContent = `<b>${title ? title : address}</b><br>`;
-        if (start_dtm) popupContent += `Start: ${formatDate(start_dtm)}<br>`;
-        if (end_dtm) popupContent += `End: ${formatDate(end_dtm)}<br>`;
-        if (update_dtm)
-          popupContent += `Last Updated: ${formatDate(update_dtm)}<br>`;
-        if (occxrrnc_cnt)
-          popupContent += `Occurrence Count: ${occxrrnc_cnt}<br>`;
-        if (year) popupContent += `year: ${year}<br>`;
-
-        marker.bindPopup(popupContent);
-      }
-
-      function clearMarkers() {
-        map.eachLayer((layer) => {
-          if (layer instanceof L.Marker && layer !== userMarker) {
-            map.removeLayer(layer);
-          }
-          if (layer instanceof L.Circle) {
-            map.removeLayer(layer);
-          }
-        });
-      }
-
-      function drawRadiusCircle(lat, lon, radius) {
-        if (radiusCircle) {
-          map.removeLayer(radiusCircle);
-        }
-        radiusCircle = L.circle([lat, lon], {
-          color: "blue",
-          fillColor: "#blue",
-          fillOpacity: 0.2,
-          radius: radius,
-        }).addTo(map);
-      }
-
-      async function changeLocation(lat, lon) {
-        clearMarkers();
-
-        drawRadiusCircle(lat, lon, 5000); // Draw a 5km circle
-
-        const walkAlerts = await fetchData(
-          `/walk-alert?lat=${lat}&lon=${lon}&radius=5000`,
-          walkIcon
-        );
-        walkAlerts.forEach((incident) => createMarker(incident));
-
-        const trafficAlerts = await fetchData(
-          `/traffic-alert?lat=${lat}&lon=${lon}&radius=5000`,
-          trafficIcon
-        );
-        trafficAlerts.forEach((incident) => createMarker(incident));
-      }
-
-      function onLocationFound(e) {
-        const { latitude, longitude } = e.coords;
-
-        if (userMarker) {
-          map.removeLayer(userMarker);
-        }
-
-        userMarker = L.marker([latitude, longitude], {
-          icon: L.icon({
-            iconUrl:
-              "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-          }),
-        })
-          .addTo(map)
-          .bindPopup("You are here!")
-          .openPopup();
-
-        map.setView([latitude, longitude], 15);
-
-        changeLocation(latitude, longitude);
-      }
-
-      function onLocationError(e) {
-        console.error("Error retrieving location:", e.message);
-        alert("Unable to retrieve your location.");
-      }
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          onLocationFound,
-          onLocationError
-        );
-      } else {
-        alert("Geolocation is not supported by this browser.");
-      }
-
-      document
-        .getElementById("recenter-button")
-        .addEventListener("click", () => {
-          const center = map.getCenter();
-          changeLocation(center.lat, center.lng);
-        });
-    </script>
-  </body>
+  </script>
+</body>
 </html>
