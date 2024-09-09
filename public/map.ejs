@@ -223,6 +223,10 @@
 
     function onLocationError(e) {
       console.error("Error retrieving location:", e.message);
+      const button = document.getElementById("toggle-location-button");
+      button.classList.remove("active");
+      button.innerHTML = '<i class="fas fa-location-arrow"></i> Toggle Location Tracking';
+      stopLocationTracking();
       alert("Unable to retrieve your location.");
     }
 
@@ -236,7 +240,6 @@
           navigator.geolocation.getCurrentPosition(onLocationFound, onLocationError);
         } else {
           alert("Geolocation is not supported by this browser.");
-          stopLocationTracking()
         }
       }, 5000);
     }
@@ -247,6 +250,7 @@
         locationIntervalId = null;
       }
     }
+
 
     document
       .getElementById("recenter-button")
