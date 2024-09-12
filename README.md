@@ -71,41 +71,7 @@ npm install
 
 PostgreSQL 컨테이너에 접속하여 PostGIS 확장을 초기화합니다
 
-그런 다음 다음 SQL 명령을 실행합니다
-
-교통 정보를 저장할 테이블을 생성합니다.
-
-```sql
-CREATE EXTENSION postgis;
-CREATE TABLE TRAFFIC_ALERT (
-	ID VARCHAR(100) NOT NULL,
-	ADDRESS VARCHAR(200) NULL,
-	TITLE VARCHAR(500) NULL,
-	TYPE_CD VARCHAR(4) NOT NULL,
-	SUB_CD VARCHAR(4) NOT NULL,
-	LATITUDE DOUBLE PRECISION NOT NULL,
-	LONGITUDE DOUBLE PRECISION NOT NULL,
-	START_DTM TIMESTAMP NULL,
-	END_DTM TIMESTAMP NULL,
-	UPDATE_DTM TIMESTAMP NULL,
-	CONSTRAINT PK_TRAFFIC_ALERT PRIMARY KEY (ID)
-);
-
-CREATE INDEX IDX_TRAFFIC_ALERT_GEO ON TRAFFIC_ALERT (LATITUDE, LONGITUDE);
-
-CREATE TABLE WALK_ALERT (
-	ID INTEGER PRIMARY KEY,
-	ADDRESS VARCHAR(200),
-	YEAR VARCHAR(4),
-	OCCXRRNC_CNT INT,
-	LATITUDE DOUBLE PRECISION NOT NULL,
-	LONGITUDE DOUBLE PRECISION NOT NULL,
-	REG_DTM TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
-CREATE INDEX IDX_LAT_LONG ON WALK_ALERT (LATITUDE, LONGITUDE);
-
-```
+`/data/initial.sql` 의 SQL을 실행해서 초기 테이블 구성 및 데이터를 적재합니다. 
 
 ### 6. 애플리케이션 시작
 
@@ -213,3 +179,4 @@ API 서버 실행 후, `http://localhost:3000/map` 으로 접근하면 아래와
 - [docker-postgis](https://registry.hub.docker.com/r/postgis/postgis/)
 - [NodeJS-ProgressBar](https://github.com/mratanusarkar/NodeJS-ProgressBar)
 - [openstreetmap](https://www.openstreetmap.org/)
+- [OSRM](https://project-osrm.org/)
