@@ -28,6 +28,12 @@ app.get("/map", (req, res) => {
   res.render("map", { authKey: process.env.AUTH_KEY });
 });
 
+
+app.get("/generator-driving", (req, res) => {
+  res.render("generator-driving", { authKey: process.env.AUTH_KEY });
+});
+
+
 function getParameter(req) {
   const lat = parseFloat(req.query.lat);
   const lon = parseFloat(req.query.lon);

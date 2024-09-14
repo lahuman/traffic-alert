@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator Driving Data</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Font Awesome CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+    #map {
+      height: 600px;
+      width: 100%;
+      position: relative;
+      margin-top: 120px; 
+    }
+    /* User Input Form */
+    .user-input-container {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+      margin-top: 50px; 
+    }
+    .user-input-container input[type="text"] {
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      width: 200px;
+    }
+    .user-input-container button {
+      padding: 10px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .user-input-container button:hover {
+      background-color: #0056b3;
+    }
+
+    .user-input-container .button:hover {
+      background-color: #0056b3;
+    }
+    .user-input-container .button {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .button::placeholder {
+      font-weight: bold;
+      opacity: 0.5;
+      color: red;
+    }
+
+    .user-input-container .button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Selected Location Display */
+    #selectedLocationDisplay {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background-color: rgba(255,255,255,0.8);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generator Driving Data</h1>
+  
+  <!-- User Input Form -->
+  <div class="user-input-container">
+    <input type="text" id="userIdInput" placeholder="Enter User ID" />
+    <input type="text" id="movementIdInput" placeholder="Enter Movement ID" />
+    <input type="text" id="startLocationInput" class="button" placeholder="Start Location" readonly="readonly"/>
+    <input type="text" id="endLocationInput"  class="button" placeholder="End Location" readonly="readonly" />
+    <button id="getDrivingDataButton">Generate Driving Data</button>
+  </div>
+  
+
+  <div id="map">
+    <!-- Selected Location Display -->
+    <div id="selectedLocationDisplay"></div>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map("map").setView([37.5665, 126.978], 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    const startIcon = L.divIcon({
+      className: "custom-icon",
+      html: '<i class="fas fa-play" style="color: green; font-size: 24px;"></i>',
+      iconSize: [32, 32],
+    });
+
+    const endIcon = L.divIcon({
+      className: "custom-icon",
+      html: '<i class="fas fa-stop" style="color: red; font-size: 24px;"></i>',
+      iconSize: [32, 32],
+    });
+
+    let startMarker;
+    let endMarker;
+    let selectingStartLocation = false;
+    let selectingEndLocation = false;
+    let startLocation = null;
+    let endLocation = null;
+
+    // Event listeners for the start and end location inputs
+    document.getElementById("startLocationInput").addEventListener("click", () => {
+      selectingStartLocation = true;
+      selectingEndLocation = false;
+      document.getElementById("selectedLocationDisplay").innerText = "Click on the map to select the start location.";
+    });
+
+    document.getElementById("endLocationInput").addEventListener("click", () => {
+      selectingStartLocation = false;
+      selectingEndLocation = true;
+      document.getElementById("selectedLocationDisplay").innerText = "Click on the map to select the end location.";
+    });
+
+    // Map click event to select locations
+    map.on('click', function(e) {
+      if (selectingStartLocation) {
+        startLocation = e.latlng;
+        selectingStartLocation = false;
+        document.getElementById("selectedLocationDisplay").innerText = `Start Location: ${startLocation.lat.toFixed(5)}, ${startLocation.lng.toFixed(5)}`;
+        document.getElementById("startLocationInput").value = `${startLocation.lat.toFixed(5)}, ${startLocation.lng.toFixed(5)}`;
+        if (startMarker) {
+          startMarker.setLatLng(startLocation);
+        } else {
+          startMarker = L.marker(startLocation, {icon: startIcon}).addTo(map);
+        }
+      } else if (selectingEndLocation) {
+        endLocation = e.latlng;
+        selectingEndLocation = false;
+        document.getElementById("selectedLocationDisplay").innerText = `End Location: ${endLocation.lat.toFixed(5)}, ${endLocation.lng.toFixed(5)}`;
+        document.getElementById("endLocationInput").value = `${endLocation.lat.toFixed(5)}, ${endLocation.lng.toFixed(5)}`;
+        if (endMarker) {
+          endMarker.setLatLng(endLocation);
+        } else {
+          endMarker = L.marker(endLocation, {icon: endIcon}).addTo(map);
+        }
+      }
+    });
+
+    // Event listener for the Generate Driving Data button
+    document.getElementById("getDrivingDataButton").addEventListener("click", () => {
+      const userId = document.getElementById("userIdInput").value;
+      const movementId = document.getElementById("movementIdInput").value;
+      const start = startLocation;
+      const end = endLocation;
+
+      if (!userId || !movementId) {
+        alert("Please enter User ID and Movement ID.");
+        return;
+      }
+
+      if (!start || !end) {
+        alert("Please select both start and end locations.");
+        return;
+      }
+
+      const data = {
+        userId: userId,
+        movementId: movementId,
+        startLocation: {
+          lat: start.lat,
+          lng: start.lng
+        },
+        endLocation: {
+          lat: end.lat,
+          lng: end.lng
+        }
+      };
+
+      fetch('/generator-driving', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to generate driving data.');
+        }
+        return response.json();
+      })
+      .then(result => {
+        alert('Driving data generated successfully.');
+        // Handle the result as needed
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while generating driving data.');
+      });
+    });
+
+  </script>
+</body>
+</html>
