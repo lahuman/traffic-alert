@@ -212,6 +212,41 @@ app.get("/user-path-walk-alert", authMiddleware, async (req, res) => {
   }
 });
 
+app.post("/generator-driving", authMiddleware, async(req, res) => {
+  try {
+    const { startLocation, endLocation, userId, movementId } = req.body;
+
+    if (!startLocation || !endLocation || !userId || !movementId) {
+      return res.status(400).json({ message: '필수 데이터가 없습니다.' });
+    }
+
+    const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${startLocation.lng},${startLocation.lat};${endLocation.lng},${endLocation.lat}?overview=full&geometries=geojson`;
+
+    const response = await fetch(osrmUrl);
+    const data = await response.json();
+
+    const coordinates = data.routes[0].geometry.coordinates;
+
+    const startTime = new Date();
+    const timeInterval = 5;  // 5초 간격
+    const minSpeedKmh = 30;  // 최소 속도 30km/h
+    const maxSpeedKmh = 80;  // 최대 속도 80km/h
+
+    const promises = coordinates.map(async (coordinate, i) => {
+      const currentTime = new Date(startTime.getTime() + i * timeInterval * 1000);
+      const speedKmh = Math.floor(Math.random() * (maxSpeedKmh - minSpeedKmh + 1)) + minSpeedKmh;  // 랜덤한 속도
+      const speedMps = speedKmh * 1000 / 3600;  // 초당 이동 거리 (미터)
+      
+      await pgExecute`INSERT INTO USER_PATH_POINTS (USER_ID, MOVEMENT_ID, POINT, TIME, SPEED, SEQUENCE) VALUES (${userId}, ${movementId}, ST_SetSRID(ST_Point(${coordinate[0]}, ${coordinate[1]}), 4326), ${currentTime.toISOString().replace('T', ' ').replace('Z', '')}, ${speedKmh}, ${i + 1})`;
+    });
+    
+    await Promise.all(promises);
+    return res.json({ status: "OK" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: "FAIL", message: '서버 오류' });
+  }
+})
 
 app.get("/walk-alert", authMiddleware, async (req, res) => {
   const { lat, lon, radius } = getParameter(req);

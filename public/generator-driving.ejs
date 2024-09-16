@@ -205,7 +205,8 @@
       fetch('/generator-driving', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          authKey: "<%= authKey %>",
         },
         body: JSON.stringify(data)
       })
