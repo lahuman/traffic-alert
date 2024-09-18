@@ -100,6 +100,7 @@ app.get("/user-path", authMiddleware, async (req, res) => {
       WHERE 
         UPP.USER_ID = ${userId}::VARCHAR
         AND UPP.MOVEMENT_ID = ${movementId}::VARCHAR
+      ORDER BY UPP.sequence
     `;
 
     if (nearbyEvent.length > 0) {
