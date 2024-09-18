@@ -1,35 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <title>실시간 교통 알림 서비스 - 지도 보기</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Special Transportation Information</title>
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Font Awesome CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
+    /* 기본 스타일 */
     body {
       margin: 0;
       font-family: Arial, sans-serif;
+    }
+    /* 헤더 스타일 */
+    header {
+      background-color: #ff5722;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    /* 내비게이션 스타일 */
+    nav {
+      background-color: #fff3e0;
+      padding: 10px;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 15px;
+      color: #ff5722;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    /* 메인 컨텐츠 스타일 */
+    main {
+      padding: 20px;
     }
     h1 {
       text-align: center;
       margin: 20px 0;
     }
+    /* 지도 스타일 */
     #map {
       height: 600px;
       width: 100%;
       position: relative;
-      margin-top: 120px; 
+      margin-top: 20px;
     }
+    /* 버튼 컨테이너 스타일 */
     .button-container {
       position: absolute;
       top: 10px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 10px; /* 버튼 사이의 여백 */
+      gap: 10px;
       z-index: 1000;
     }
     .button-container button {
@@ -45,7 +71,7 @@
       background-color: #007bff;
     }
     #toggle-location-button {
-      background-color: #28a745; /* 녹색 */
+      background-color: #28a745;
     }
     #recenter-button i, #toggle-location-button i {
       margin-right: 5px;
@@ -54,31 +80,32 @@
       background-color: #0056b3;
     }
     #toggle-location-button:hover {
-      background-color: #218838; /* 더 어두운 녹색 */
+      background-color: #218838;
     }
     #toggle-location-button.active {
-      background-color: #218838; /* 더 어두운 녹색 */
+      background-color: #218838;
     }
+    /* 사용자 ID 입력 폼 스타일 */
 
-    /* 사용자 ID 입력 폼 */
-    .user-input-container {
-      position: absolute;
-      top: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      display: flex;
-      gap: 10px;
-      margin-top: 50px; 
-    }
+.user-input-container {
+  /* position: absolute;  제거 */
+  /* top: 50px;  제거 */
+  /* left: 50%;  제거 */
+  /* transform: translateX(-50%);  제거 */
+  display: flex;
+  gap: 10px;
+  margin: 20px auto; /* 중앙 정렬 및 상하 여백 추가 */
+  justify-content: center; /* 플렉스 아이템을 중앙으로 정렬 */
+}
     .user-input-container input {
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 16px;
+      padding: 5px;
     }
     .user-input-container button {
       padding: 10px 15px;
-      background-color: #007bff;
+      background-color: #ff5722;
       border: none;
       color: white;
       cursor: pointer;
@@ -86,30 +113,117 @@
       font-size: 16px;
     }
     .user-input-container button:hover {
-      background-color: #0056b3;
+      background-color: #e64a19;
     }
+    /* 반응형 디자인 */
+    @media (max-width: 600px) {
+      nav a {
+        display: block;
+        margin: 10px 0;
+      }
+      .social-media img {
+        width: 25px;
+      }
+      .button-container {
+        flex-direction: column;
+      }
+      .user-input-container {
+        flex-direction: column;
+      }
+    }
+    /* 푸터 스타일 */
+footer {
+  background-color: #ffe0b2;
+  padding: 20px;
+  text-align: center;
+  color: #333;
+}
+
+footer a {
+  color: #ff5722;
+  text-decoration: none;
+  margin: 0 5px;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+.social-media {
+  margin-top: 10px;
+}
+
+.social-media i {
+  font-size: 24px;
+  color: #ff5722;
+  margin: 0 10px;
+}
+
+.social-media a:hover i {
+  color: #e64a19;
+}
+
   </style>
 </head>
 <body>
-  <h1>Special Transportation Information</h1>
-  
-  <!-- 사용자 ID 입력 폼 -->
-  <div class="user-input-container">
-    <input type="text" id="userIdInput" placeholder="Enter User ID" />
-    <input type="text" id="movementIdInput" placeholder="Enter Movement ID" />
-    <button id="searchUserPathButton">Search User Path</button>
-  </div>
-  
-  <div id="map">
-    <div class="button-container">
-      <button id="toggle-location-button">
-        <i class="fas fa-location-arrow"></i> Toggle Location Tracking
-      </button>
-      <button id="recenter-button">
-        <i class="fas fa-sync-alt"></i> Map Centered Re-search
-      </button>
+  <!-- 헤더 시작 -->
+  <header>
+    <h1>실시간 교통 알림 서비스</h1>
+    <p>최신 교통 정보를 한눈에 확인하고 경로를 계획하세요!</p>
+  </header>
+  <!-- 헤더 끝 -->
+
+  <!-- 내비게이션 바 시작 -->
+  <nav>
+    <a href="/">홈으로</a>
+    <a href="/map">지도 보기</a>
+    <a href="/generator-driving">경로 찾기</a>
+  </nav>
+  <!-- 내비게이션 바 끝 -->
+
+  <!-- 메인 콘텐츠 시작 -->
+  <main>
+    <!-- 지도 제목 -->
+    <h2>지도 보기</h2>
+    
+    <!-- 사용자 ID 입력 폼 -->
+    <div class="user-input-container">
+      <input type="text" id="userIdInput" placeholder="사용자 ID 입력" />
+      <input type="text" id="movementIdInput" placeholder="이동 ID 입력" />
+      <button id="searchUserPathButton">사용자 경로 검색</button>
     </div>
+    
+    <!-- 지도 영역 -->
+    <div id="map">
+      <div class="button-container">
+        <button id="toggle-location-button">
+          <i class="fas fa-location-arrow"></i> 위치 추적 토글
+        </button>
+        <button id="recenter-button">
+          <i class="fas fa-sync-alt"></i> 지도 중심 재검색
+        </button>
+      </div>
+    </div>
+  </main>
+  <!-- 메인 콘텐츠 끝 -->
+
+
+<!-- 푸터 시작 -->
+<footer id="contact">
+  <p>이 프로젝트는 오픈 소스로 개발되었습니다. 자세한 내용은 GitHub에서 확인하세요.</p>
+  <div class="social-media">
+    <a href="https://github.com/lahuman/traffic-alert" target="_blank" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
   </div>
+  <p>
+    <a href="https://github.com/lahuman/traffic-alert/blob/main/terms.md" target="_blank">이용약관</a>
+  </p>
+</footer>
+<!-- 푸터 끝 -->
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- 기존의 스크립트 코드 -->
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

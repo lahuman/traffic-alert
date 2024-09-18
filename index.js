@@ -24,6 +24,11 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+
+app.get("/", (req, res) => {
+  res.render("index");
+});
+
 app.get("/map", (req, res) => {
   res.render("map", { authKey: process.env.AUTH_KEY });
 });
@@ -213,6 +218,9 @@ app.get("/user-path-walk-alert", authMiddleware, async (req, res) => {
   }
 });
 
+
+
+
 app.post("/generator-driving", authMiddleware, async(req, res) => {
   try {
     const { startLocation, endLocation, userId, movementId } = req.body;
@@ -223,7 +231,16 @@ app.post("/generator-driving", authMiddleware, async(req, res) => {
 
     const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${startLocation.lng},${startLocation.lat};${endLocation.lng},${endLocation.lat}?overview=full&geometries=geojson`;
 
-    const response = await fetch(osrmUrl);
+    const response = await fetch(osrmUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.5938.89 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Connection': 'keep-alive',
+      },
+    });
+
     const data = await response.json();
 
     const coordinates = data.routes[0].geometry.coordinates;
@@ -246,6 +263,7 @@ app.post("/generator-driving", authMiddleware, async(req, res) => {
     await Promise.all(promises);
     return res.json({ status: "OK" });
   } catch (error) {
+    console.log(JSON.stringify(error))
     console.error(error);
     return res.status(500).json({ status: "FAIL", message: '서버 오류' });
   }

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>실시간 교통 알림 서비스</title>
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* 기본 스타일 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        header {
+            background-color: #ff5722;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #fff3e0;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            margin: 0 15px;
+            color: #ff5722;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        main {
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #ff5722;
+        }
+        footer {
+            background-color: #ffe0b2;
+            padding: 10px;
+            text-align: center;
+        }
+        .social-media img {
+            width: 30px;
+            margin: 0 10px;
+        }
+        @media (max-width: 600px) {
+            nav a {
+                display: block;
+                margin: 10px 0;
+            }
+            .social-media img {
+                width: 25px;
+            }
+        }
+        /* 버튼 스타일 */
+        .btn {
+            background-color: #ff5722;
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 15px 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #e64a19;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>실시간 교통 알림 서비스</h1>
+    <p>최신 교통 정보를 한눈에 확인하고 경로를 계획하세요!</p>
+</header>
+
+<nav>
+    <a href="/map">지도 보기</a>
+    <a href="/generator-driving">경로 찾기</a>
+    <a href="#guide">이용 방법</a>
+    <a href="#contact">문의하기</a>
+</nav>
+
+<main>
+    <section class="section">
+        <h2>새로운 기능: 경로 찾기 및 교통 알림</h2>
+        <p>출발지와 도착지를 입력하여 최적의 경로를 찾고, 이동 경로상의 실시간 교통 알림 정보를 받아보세요.</p>
+        <a href="/generator-driving" class="btn">경로 찾기 시작하기</a>
+    </section>
+
+    <section class="section">
+        <h2>주요 기능</h2>
+        <ul>
+            <li>실시간 교통 상황 제공</li>
+            <li>경로 찾기 및 경로상의 교통 알림</li>
+            <li>교통 알림 설정 기능</li>
+            <li>사용자 맞춤 경로 안내</li>
+        </ul>
+    </section>
+
+    <section class="section">
+        <h2>최신 업데이트</h2>
+        <p>2023년 10월 1일: 경로 찾기 기능이 추가되었습니다. 이제 이동 계획을 더욱 효율적으로 세워보세요!</p>
+    </section>
+
+    <section class="section" id="guide">
+        <h2>사용자 가이드</h2>
+        <ol>
+            <li>상단 메뉴에서 "지도 보기" 또는 "경로 찾기"를 선택하세요.</li>
+            <li>지도에서 원하는 지역의 교통 상황을 확인하거나, 경로 찾기 페이지에서 출발지와 도착지를 입력하세요.</li>
+            <li>경로상의 실시간 교통 알림 정보를 확인하고, 알림 설정을 통해 업데이트를 받아보세요.</li>
+        </ol>
+    </section>
+</main>
+
+<!-- 푸터 시작 -->
+<footer id="contact">
+    <p>이 프로젝트는 오픈 소스로 개발되었습니다. 자세한 내용은 GitHub에서 확인하세요.</p>
+    <div class="social-media">
+      <a href="https://github.com/lahuman/traffic-alert" target="_blank" aria-label="GitHub">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <p>
+      <a href="https://github.com/lahuman/traffic-alert/blob/main/terms.md" target="_blank">이용약관</a>
+    </p>
+  </footer>
+  <!-- 푸터 끝 -->
+  
+
+</body>
+</html>
