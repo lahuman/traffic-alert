@@ -232,6 +232,8 @@ app.post("/generator-driving", authMiddleware, async(req, res) => {
     const minSpeedKmh = 30;  // 최소 속도 30km/h
     const maxSpeedKmh = 80;  // 최대 속도 80km/h
 
+    await pgExecute`INSERT INTO USER_PATH_INFO (USER_ID, MOVEMENT_ID, START_POINT, END_POINT, START_DTM, END_DTM, MOVE_KM) VALUES (${userId}, ${movementId}, ST_SetSRID(ST_Point(${startLocation.lng},${startLocation.lat}), 4326),ST_SetSRID(ST_Point(${startLocation.lng},${startLocation.lat}), 4326), ${new Date(startTime.getTime()  + 1000)}, ${new Date(startTime.getTime() + data.routes[0].duration * 1000)}, ${data.routes[0].distance / 1000})`;
+
     const promises = coordinates.map(async (coordinate, i) => {
       const currentTime = new Date(startTime.getTime() + i * timeInterval * 1000);
       const speedKmh = Math.floor(Math.random() * (maxSpeedKmh - minSpeedKmh + 1)) + minSpeedKmh;  // 랜덤한 속도
