@@ -84,6 +84,44 @@ app.get("/traffic-alert", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/user-path-info", authMiddleware, async (req, res) => {
+  try {
+    const {userId}  = req.query;
+
+    // userId가 존재하는지 검증
+    if (!userId) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+
+    // 템플릿 리터럴 태그로 변경
+    const nearbyEvent = await pgExecute`
+      SELECT 
+        UPI.USER_ID,
+        UPI.movement_id,
+        ST_AsText(UPI.START_POINT) AS start_point,
+        ST_AsText(UPI.end_POINT) AS end_point,
+        start_dtm ,
+        end_dtm , 
+        move_km 
+      FROM 
+        USER_PATH_INFO UPI
+      WHERE 
+        UPI.USER_ID = ${userId}::VARCHAR
+    `;
+
+    if (nearbyEvent.length > 0) {
+      res.json(nearbyEvent);
+    } else {
+      res.status(204).send("No Content: No user path");
+    }
+  } catch (error) {
+    console.error("Error fetching user path:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
 app.get("/user-path", authMiddleware, async (req, res) => {
   try {
     const {userId, movementId}  = req.query;
