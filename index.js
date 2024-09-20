@@ -107,6 +107,7 @@ app.get("/user-path-info", authMiddleware, async (req, res) => {
         USER_PATH_INFO UPI
       WHERE 
         UPI.USER_ID = ${userId}::VARCHAR
+      ORDER BY start_dtm desc
     `;
 
     if (nearbyEvent.length > 0) {
