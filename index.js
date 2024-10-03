@@ -50,6 +50,7 @@ function getParameter(req) {
     radius,
   };
 }
+
 app.get("/traffic-alert", authMiddleware, async (req, res) => {
   const { lat, lon, radius } = getParameter(req);
   if (!lat || !lon) {
@@ -73,8 +74,6 @@ app.get("/traffic-alert", authMiddleware, async (req, res) => {
           AND START_DTM <= NOW()
           AND END_DTM >= NOW()
       ORDER BY distance;
-
-
         `;
 
   if (nearbyEvent.length > 0) {
@@ -83,6 +82,38 @@ app.get("/traffic-alert", authMiddleware, async (req, res) => {
     res.status(204).send("No Content: No accidents nearby");
   }
 });
+
+
+app.get("/pet-store", authMiddleware, async (req, res) => {
+  const { lat, lon, radius } = getParameter(req);
+  if (!lat || !lon) {
+    return res.status(400).send("Bad Request: Missing or invalid lat/lon");
+  }
+
+  const nearbyEvent = await pgExecute`
+       SELECT
+          ST_DISTANCE(
+              geography(ST_SetSRID(ST_Point(LONGITUDE, LATITUDE), 4326)),
+              geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326))
+          )::double precision AS distance,
+          *
+      FROM store_info
+      WHERE
+          ST_DWithin(
+              geography(ST_SetSRID(ST_Point(LONGITUDE, LATITUDE), 4326)),
+              geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)),
+              ${isNaN(radius) ? parseFloat(process.env.STORE_RADIUS || '50') : radius}
+          )
+      ORDER BY distance;
+        `;
+
+  if (nearbyEvent.length > 0) {
+    res.json(nearbyEvent);
+  } else {
+    res.status(204).send("No Content: No accidents nearby");
+  }
+});
+
 
 app.get("/user-path-info", authMiddleware, async (req, res) => {
   try {
