@@ -453,6 +453,20 @@
       iconSize: [32, 32],
     });
 
+    // 미용
+    var groomingIcon = L.divIcon({
+      className: "custom-icon",
+      html: '<i class="fas fa-cut" style="color: pink; font-size: 24px;"></i>',
+      iconSize: [32, 32],
+    });
+
+    var defaultIcon = L.divIcon({
+    className: "custom-icon",
+    html: '<i class="fas fa-map-marker-alt" style="color: gray; font-size: 24px;"></i>',
+    iconSize: [32, 32],
+  });
+
+
     function getIconByCategory(category) {
       switch (category) {
         case "동물약국":
@@ -480,9 +494,11 @@
           return pensionIcon;
         case "호텔":
           return hotelIcon;
+        case "미용":
+          return groomingIcon;
         default:
-          // 기본 아이콘 또는 null 반환
-          return null;
+          console.warn(`Unknown category: ${category}`);
+          return defaultIcon;
       }
     }
 
@@ -754,7 +770,7 @@
       trafficAlerts.forEach((incident) => createMarker(incident));
 
       const stores = await fetchData(
-        `/pet-store?lat=${lat}&lon=${lon}&radius=5000`,
+        `/pet-store?lat=${lat}&lon=${lon}&radius=500`,
         "PET"
       );
       stores.forEach((incident) => createMarker(incident));
