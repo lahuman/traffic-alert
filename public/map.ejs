@@ -693,6 +693,7 @@
 
       await fetchAlert4Path(`/user-path-traffic-alert?userId=${userId}&movementId=${movementId}`, trafficIcon);
       await fetchAlert4Path(`/user-path-walk-alert?userId=${userId}&movementId=${movementId}`, walkIcon);
+      await fetchAlert4Path(`/user-path-pet-store?userId=${userId}&movementId=${movementId}`, "PET");
     }
 
     document.getElementById("searchUserPathButton").addEventListener("click", () => {

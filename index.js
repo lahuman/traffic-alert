@@ -238,9 +238,6 @@ app.get("/user-path-traffic-alert", authMiddleware, async (req, res) => {
   }
 });
 
-
-
-
 app.get("/user-path-walk-alert", authMiddleware, async (req, res) => {
   try {
     const {userId, movementId}  = req.query;
@@ -288,7 +285,47 @@ app.get("/user-path-walk-alert", authMiddleware, async (req, res) => {
   }
 });
 
+app.get("/user-path-pet-store", authMiddleware, async (req, res) => {
+  try {
+    const {userId, movementId}  = req.query;
 
+    // userId가 존재하는지 검증
+    if (!userId) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+
+    // 템플릿 리터럴 태그로 변경
+    const nearbyEvent = await pgExecute`
+      SELECT DISTINCT ON (WA.ID)
+          WA.ID,
+          WA.*
+      FROM 
+          STORE_INFO WA
+      LEFT JOIN 
+          USER_PATH_POINTS UPP
+      ON 
+          ST_DWithin(
+              UPP.POINT, 
+              ST_SetSRID(ST_Point(WA.LONGITUDE, WA.LATITUDE), 4326), 
+              50 / 111320.0 -- 50m 거리 내의 WALK_ALERT
+          )
+      WHERE 
+          UPP.USER_ID = ${userId}::VARCHAR
+          AND UPP.MOVEMENT_ID = ${movementId}::VARCHAR
+      ORDER BY 
+          WA.ID
+    `;
+
+    if (nearbyEvent.length > 0) {
+      res.json(nearbyEvent);
+    } else {
+      res.status(204).send("No Content: No user path");
+    }
+  } catch (error) {
+    console.error("Error fetching user path:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 
 app.post("/generator-driving", authMiddleware, async(req, res) => {
