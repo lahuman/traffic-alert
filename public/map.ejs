@@ -1,864 +1,941 @@
 <!DOCTYPE html>
 <html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>실시간 교통 알림 서비스 - 지도 보기</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <!-- Font Awesome CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      /* 기본 스타일 */
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <title>실시간 교통 알림 서비스 - 지도 보기</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- Font Awesome CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <style>
-    /* 기본 스타일 */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
+      /* 헤더 스타일 */
+      header {
+        background-color: #ff5722;
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
 
-    /* 헤더 스타일 */
-    header {
-      background-color: #ff5722;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
+      /* 내비게이션 스타일 */
+      nav {
+        background-color: #fff3e0;
+        padding: 10px;
+        text-align: center;
+      }
 
-    /* 내비게이션 스타일 */
-    nav {
-      background-color: #fff3e0;
-      padding: 10px;
-      text-align: center;
-    }
-
-    nav a {
-      margin: 0 15px;
-      color: #ff5722;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    /* 메인 컨텐츠 스타일 */
-    main {
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    /* 지도 스타일 */
-    #map {
-      height: 600px;
-      width: 100%;
-      position: relative;
-      margin-top: 20px;
-    }
-
-    /* 버튼 컨테이너 스타일 */
-    .button-container {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-      z-index: 1000;
-    }
-
-    .button-container button {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      color: white;
-      display: flex;
-      align-items: center;
-    }
-
-    #recenter-button {
-      background-color: #007bff;
-    }
-
-    #toggle-location-button {
-      background-color: #28a745;
-    }
-
-    #recenter-button i,
-    #toggle-location-button i {
-      margin-right: 5px;
-    }
-
-    #recenter-button:hover {
-      background-color: #0056b3;
-    }
-
-    #toggle-location-button:hover {
-      background-color: #218838;
-    }
-
-    #toggle-location-button.active {
-      background-color: #218838;
-    }
-
-    /* 사용자 ID 입력 폼 스타일 */
-
-    .user-input-container {
-      /* position: absolute;  제거 */
-      /* top: 50px;  제거 */
-      /* left: 50%;  제거 */
-      /* transform: translateX(-50%);  제거 */
-      display: flex;
-      gap: 10px;
-      margin: 20px auto;
-      /* 중앙 정렬 및 상하 여백 추가 */
-      justify-content: center;
-      /* 플렉스 아이템을 중앙으로 정렬 */
-    }
-
-    .user-input-container input {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 16px;
-      padding: 5px;
-    }
-
-    .user-input-container button {
-      padding: 10px 15px;
-      background-color: #ff5722;
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-
-    .user-input-container button:hover {
-      background-color: #e64a19;
-    }
-
-    /* 반응형 디자인 */
-    @media (max-width: 600px) {
       nav a {
-        display: block;
-        margin: 10px 0;
+        margin: 0 15px;
+        color: #ff5722;
+        text-decoration: none;
+        font-weight: bold;
       }
 
-      .social-media img {
-        width: 25px;
+      /* 메인 컨텐츠 스타일 */
+      main {
+        padding: 20px;
       }
 
+      h1 {
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      /* 지도 스타일 */
+      #map {
+        height: 600px;
+        width: 100%;
+        position: relative;
+        margin-top: 20px;
+      }
+
+      /* 버튼 컨테이너 스타일 */
       .button-container {
-        flex-direction: column;
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 1000;
       }
+
+      .button-container button {
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        display: flex;
+        align-items: center;
+      }
+
+      #recenter-button {
+        background-color: #007bff;
+      }
+
+      #toggle-location-button {
+        background-color: #28a745;
+      }
+
+      #recenter-button i,
+      #toggle-location-button i {
+        margin-right: 5px;
+      }
+
+      #recenter-button:hover {
+        background-color: #0056b3;
+      }
+
+      #toggle-location-button:hover {
+        background-color: #218838;
+      }
+
+      #toggle-location-button.active {
+        background-color: #218838;
+      }
+
+      /* 사용자 ID 입력 폼 스타일 */
 
       .user-input-container {
-        flex-direction: column;
-      }
-    }
-
-    /* 푸터 스타일 */
-    footer {
-      background-color: #ffe0b2;
-      padding: 20px;
-      text-align: center;
-      color: #333;
-    }
-
-    footer a {
-      color: #ff5722;
-      text-decoration: none;
-      margin: 0 5px;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    .social-media {
-      margin-top: 10px;
-    }
-
-    .social-media i {
-      font-size: 24px;
-      color: #ff5722;
-      margin: 0 10px;
-    }
-
-    .social-media a:hover i {
-      color: #e64a19;
-    }
-
-    /* 모달 스타일 추가 */
-    .modal {
-      display: none;
-      /* 기본적으로 모달은 숨김 */
-      position: fixed;
-      z-index: 2000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.5);
-      /* 배경 어둡게 */
-    }
-
-    .modal-content {
-      background-color: #fefefe;
-      margin: 10% auto;
-      /* 가운데 정렬 */
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 600px;
-      border-radius: 10px;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-header h2 {
-      margin: 0;
-    }
-
-    .close {
-      color: #aaa;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover,
-    .close:focus {
-      color: black;
-      text-decoration: none;
-    }
-
-    .modal-list {
-      list-style-type: none;
-      padding: 0;
-      margin-top: 20px;
-    }
-
-    .modal-list li {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-      cursor: pointer;
-    }
-
-    .modal-list li:hover {
-      background-color: #f1f1f1;
-    }
-
-    .modal-list li:last-child {
-      border-bottom: none;
-    }
-  </style>
-</head>
-
-<body>
-  <!-- 헤더 시작 -->
-  <header>
-    <h1>실시간 교통 알림 서비스</h1>
-    <p>최신 교통 정보를 한눈에 확인하고 경로를 계획하세요!</p>
-  </header>
-  <!-- 헤더 끝 -->
-
-  <!-- 내비게이션 바 시작 -->
-  <nav>
-    <a href="/">홈으로</a>
-    <a href="/map">지도 보기</a>
-    <a href="/generator-driving">경로 찾기</a>
-  </nav>
-  <!-- 내비게이션 바 끝 -->
-
-  <!-- 메인 콘텐츠 시작 -->
-  <main>
-    <!-- 지도 제목 -->
-    <h2>지도 보기</h2>
-
-    <!-- 사용자 ID 입력 폼 -->
-    <div class="user-input-container">
-      <input type="text" id="userIdInput" placeholder="사용자 ID 입력" />
-      <button id="searchUserPathButton">사용자 이동 검색</button>
-    </div>
-
-    <!-- 지도 영역 -->
-    <div id="map">
-      <div class="button-container">
-        <button id="toggle-location-button">
-          <i class="fas fa-location-arrow"></i> 위치 추적 토글
-        </button>
-        <button id="recenter-button">
-          <i class="fas fa-sync-alt"></i> 지도 중심 재검색
-        </button>
-      </div>
-    </div>
-  </main>
-  <!-- 메인 콘텐츠 끝 -->
-
-
-
-  <!-- 모달 시작 -->
-  <div id="userPathModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>이동 경로 선택</h2>
-        <span class="close">&times;</span>
-      </div>
-      <ul id="userPathList" class="modal-list">
-        <!-- 이동 경로 목록이 여기 추가됩니다 -->
-      </ul>
-    </div>
-  </div>
-  <!-- 모달 끝 -->
-
-  <!-- 푸터 시작 -->
-  <footer id="contact">
-    <p>이 프로젝트는 오픈 소스로 개발되었습니다. 자세한 내용은 GitHub에서 확인하세요.</p>
-    <div class="social-media">
-      <a href="https://github.com/lahuman/traffic-alert" target="_blank" aria-label="GitHub">
-        <i class="fab fa-github"></i>
-      </a>
-    </div>
-    <p>
-      <a href="https://github.com/lahuman/traffic-alert/blob/main/terms.md" target="_blank">이용약관</a>
-    </p>
-  </footer>
-  <!-- 푸터 끝 -->
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- 기존의 스크립트 코드 -->
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    const map = L.map("map").setView([37.5665, 126.978], 13);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors",
-    }).addTo(map);
-
-    const startIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-play" style="color: green; font-size: 24px;"></i>', // Start icon (green play icon)
-      iconSize: [32, 32],
-    });
-
-    const endIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-stop" style="color: red; font-size: 24px;"></i>', // End icon (red stop icon)
-      iconSize: [32, 32],
-    });
-
-
-    const walkIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-walking" style="color: orange; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    const trafficIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-car" style="color: red; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 동물약국 (Animal Pharmacy)
-    const animalPharmacyIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-pills" style="color: green; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 동물병원 (Animal Hospital)
-    const animalHospitalIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-paw" style="color: red; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 문예회관 (Culture Center)
-    const cultureCenterIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-theater-masks" style="color: purple; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 미술관 (Art Gallery)
-    const artGalleryIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-palette" style="color: orange; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 박물관 (Museum)
-    const museumIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-landmark" style="color: brown; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 반려동물용품 (Pet Supplies)
-    const petSuppliesIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-bone" style="color: blue; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 식당 (Restaurant)
-    const restaurantIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-utensils" style="color: darkorange; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 여행지 (Travel Destination)
-    const travelDestinationIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-mountain" style="color: teal; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 위탁관리 (Custody Management)
-    const custodyManagementIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-home" style="color: lightblue; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 카페 (Cafe)
-    const cafeIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-coffee" style="color: sienna; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 펜션 (Pension)
-    const pensionIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-home" style="color: lightgreen; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 호텔 (Hotel)
-    const hotelIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-hotel" style="color: navy; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    // 미용
-    var groomingIcon = L.divIcon({
-      className: "custom-icon",
-      html: '<i class="fas fa-cut" style="color: pink; font-size: 24px;"></i>',
-      iconSize: [32, 32],
-    });
-
-    var defaultIcon = L.divIcon({
-    className: "custom-icon",
-    html: '<i class="fas fa-map-marker-alt" style="color: gray; font-size: 24px;"></i>',
-    iconSize: [32, 32],
-  });
-
-
-    function getIconByCategory(category) {
-      switch (category) {
-        case "동물약국":
-          return animalPharmacyIcon;
-        case "동물병원":
-          return animalHospitalIcon;
-        case "문예회관":
-          return cultureCenterIcon;
-        case "미술관":
-          return artGalleryIcon;
-        case "박물관":
-          return museumIcon;
-        case "반려동물용품":
-          return petSuppliesIcon;
-        case "식당":
-          return restaurantIcon;
-        case "여행지":
-          return travelDestinationIcon;
-        case "위탁관리":
-          return custodyManagementIcon;
-        case "까페":
-        case "카페": // '카페'로 입력되는 경우도 처리
-          return cafeIcon;
-        case "펜션":
-          return pensionIcon;
-        case "호텔":
-          return hotelIcon;
-        case "미용":
-          return groomingIcon;
-        default:
-          console.warn(`Unknown category: ${category}`);
-          return defaultIcon;
-      }
-    }
-
-    let userMarker;
-    let radiusCircle;
-    let locationIntervalId;
-
-    function formatDate(isoDateString) {
-      const date = new Date(isoDateString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      return `${year}-${month}-${day} ${hours}:${minutes}`;
-    }
-
-
-    function createMarker({
-      store_name,
-      type_nm,
-      post_num,
-      phone_num,
-      web_site,
-      day_off,
-      operating_hours,
-      paking_yn,
-      price_num,
-      latitude,
-      longitude,
-      title,
-      address,
-      start_dtm,
-      end_dtm,
-      update_dtm,
-      icon,
-      year,
-      occxrrnc_cnt,
-    }) {
-
-      if (icon == "PET") {
-
-        const marker = L.marker([latitude, longitude], { icon: getIconByCategory(type_nm) }).addTo(map);
-
-        var popupContent = `<b>${store_name ? store_name : address}</b><br>`;
-        if (type_nm) popupContent += `업종: ${type_nm}<br>`;
-        if (address) popupContent += `주소: ${address}<br>`;
-        if (phone_num) popupContent += `전화번호: ${phone_num}<br>`;
-        if (web_site) popupContent += `웹사이트: <a href="${web_site}" target="_blank">${web_site}</a><br>`;
-        if (day_off) popupContent += `휴무일: ${day_off}<br>`;
-        if (operating_hours) popupContent += `운영 시간: ${operating_hours}<br>`;
-        if (paking_yn) popupContent += `주차 가능: ${paking_yn === 'Y' ? '예' : '아니오'}<br>`;
-        if (price_num) popupContent += `가격 정보: ${price_num}<br>`;
-
-        marker.bindPopup(popupContent);
-      } else {
-
-        const marker = L.marker([latitude, longitude], { icon }).addTo(map);
-
-        let popupContent = `<b>${title ? title : address}</b><br>`;
-        if (start_dtm) popupContent += `Start: ${formatDate(start_dtm)}<br>`;
-        if (end_dtm) popupContent += `End: ${formatDate(end_dtm)}<br>`;
-        if (update_dtm) popupContent += `Last Updated: ${formatDate(update_dtm)}<br>`;
-        if (occxrrnc_cnt) popupContent += `Occurrence Count: ${occxrrnc_cnt}<br>`;
-        if (year) popupContent += `Year: ${year}<br>`;
-
-        marker.bindPopup(popupContent);
-      }
-    }
-
-
-    // 사용자 경로를 그리는 함수
-    function drawUserPath(pathData) {
-      const latLngs = pathData.map((data) => {
-        const wkt = data.user_location;
-        // wkt 데이터를 LatLng로 변환 (가정: POINT 형식의 WKT)
-        const point = wkt.match(/\(([^)]+)\)/)[1].split(" ");
-        return [parseFloat(point[1]), parseFloat(point[0])]; // [latitude, longitude]
-      });
-
-      map.setView(latLngs[0], 15);
-
-      // 경로 폴리라인 그리기
-      L.polyline(latLngs, { color: "blue", weight: 4 }).addTo(map);
-
-      // 경로의 시작과 끝에 마커 표시
-      if (latLngs.length > 0) {
-        const start = latLngs[0];
-        const end = latLngs[latLngs.length - 1];
-        L.marker(start, { icon: startIcon }).bindPopup("Start").addTo(map);
-        L.marker(end, { icon: endIcon }).bindPopup("End").addTo(map);
-      }
-    }
-
-
-    async function fetchUserPathCall(url) {
-      const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          authKey: "<%= authKey %>",
-        },
-      });
-      return response
-    }
-
-    async function fetchAlert4Path(url, icon) {
-
-      const trafficResponse = await fetchUserPathCall(url)
-
-      if (trafficResponse.status !== 200) {
-        return;
+        /* position: absolute;  제거 */
+        /* top: 50px;  제거 */
+        /* left: 50%;  제거 */
+        /* transform: translateX(-50%);  제거 */
+        display: flex;
+        gap: 10px;
+        margin: 20px auto;
+        /* 중앙 정렬 및 상하 여백 추가 */
+        justify-content: center;
+        /* 플렉스 아이템을 중앙으로 정렬 */
       }
 
-      const trafficData = await trafficResponse.json();
-
-      // 이벤트 마커 찍기
-      trafficData.forEach((incident) => {
-        createMarker({
-          ...incident,
-          icon,
-        });
-      });
-
-    }
-
-    // 모달 관련 변수 선언
-    const modal = document.getElementById("userPathModal");
-    const modalCloseBtn = document.querySelector(".modal .close");
-    const userPathList = document.getElementById("userPathList");
-
-    // 모달 닫기 이벤트
-    modalCloseBtn.onclick = function () {
-      modal.style.display = "none";
-    };
-
-    // 모달 외부 클릭 시 닫기
-    window.onclick = function (event) {
-      if (event.target == modal) {
-        modal.style.display = "none";
-      }
-    };
-
-    // 사용자 ID 기반 목록 조회
-    async function fetchUserPathInfo(userId) {
-      const url = `/user-path-info?userId=${userId}`;
-      const response = await fetchUserPathCall(url);
-      if (response.status !== 200) {
-        alert("사용자 경로 정보를 가져오는데 실패했습니다.");
-        return;
+      .user-input-container input {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+        padding: 5px;
       }
 
-      const pathInfoData = await response.json();
-
-      // 목록을 초기화
-      userPathList.innerHTML = "";
-
-      if (pathInfoData.length === 0) {
-        const noDataItem = document.createElement("li");
-        noDataItem.textContent = "이동 경로가 없습니다.";
-        userPathList.appendChild(noDataItem);
-      } else {
-        pathInfoData.forEach((item) => {
-          const listItem = document.createElement("li");
-          listItem.textContent = `이동 ID: ${item.movement_id}, 이동 거리: ${item.move_km.toFixed(2)}km, 시작 시간: ${formatDate(item.start_dtm)}`;
-          listItem.dataset.movementId = item.movement_id;
-          listItem.onclick = function () {
-            fetchUserPath(userId, this.dataset.movementId);
-            modal.style.display = "none";
-          };
-          userPathList.appendChild(listItem);
-        });
+      .user-input-container button {
+        padding: 10px 15px;
+        background-color: #ff5722;
+        border: none;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 16px;
       }
 
-      // 모달 창 표시
-      modal.style.display = "block";
-    }
-
-    async function fetchUserPath(userId, movementId) {
-      clearMarkers();
-
-      const url = `/user-path?userId=${userId}&movementId=${movementId}`;
-      const response = await fetchUserPathCall(url)
-      if (response.status !== 200) {
-        alert("Failed to fetch user path");
-        return;
+      .user-input-container button:hover {
+        background-color: #e64a19;
       }
 
-      const userPathData = await response.json();
-
-      // 사용자 경로 그리기
-      drawUserPath(userPathData);
-
-      await fetchAlert4Path(`/user-path-traffic-alert?userId=${userId}&movementId=${movementId}`, trafficIcon);
-      await fetchAlert4Path(`/user-path-walk-alert?userId=${userId}&movementId=${movementId}`, walkIcon);
-      await fetchAlert4Path(`/user-path-pet-store?userId=${userId}&movementId=${movementId}`, "PET");
-    }
-
-    document.getElementById("searchUserPathButton").addEventListener("click", () => {
-      const userId = document.getElementById("userIdInput").value;
-      if (userId) {
-        fetchUserPathInfo(userId);
-      } else {
-        alert("Please enter ID.");
-      }
-    });
-
-    function clearMarkers() {
-      if (radiusCircle) {
-        map.removeLayer(radiusCircle);
-      }
-      map.eachLayer((layer) => {
-        if (layer instanceof L.Marker || layer instanceof L.Polyline) {
-          map.removeLayer(layer);
+      /* 반응형 디자인 */
+      @media (max-width: 600px) {
+        nav a {
+          display: block;
+          margin: 10px 0;
         }
+
+        .social-media img {
+          width: 25px;
+        }
+
+        .button-container {
+          flex-direction: column;
+        }
+
+        .user-input-container {
+          flex-direction: column;
+        }
+      }
+
+      /* 푸터 스타일 */
+      footer {
+        background-color: #ffe0b2;
+        padding: 20px;
+        text-align: center;
+        color: #333;
+      }
+
+      footer a {
+        color: #ff5722;
+        text-decoration: none;
+        margin: 0 5px;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      .social-media {
+        margin-top: 10px;
+      }
+
+      .social-media i {
+        font-size: 24px;
+        color: #ff5722;
+        margin: 0 10px;
+      }
+
+      .social-media a:hover i {
+        color: #e64a19;
+      }
+
+      /* 모달 스타일 추가 */
+      .modal {
+        display: none;
+        /* 기본적으로 모달은 숨김 */
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        /* 배경 어둡게 */
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        /* 가운데 정렬 */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 10px;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+      }
+
+      .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+      }
+
+      .modal-list {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 20px;
+      }
+
+      .modal-list li {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        cursor: pointer;
+      }
+
+      .modal-list li:hover {
+        background-color: #f1f1f1;
+      }
+
+      .modal-list li:last-child {
+        border-bottom: none;
+      }
+      .checkbox-container {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .checkbox-container label {
+        font-size: 16px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 헤더 시작 -->
+    <header>
+      <h1>실시간 교통 알림 서비스</h1>
+      <p>최신 교통 정보를 한눈에 확인하고 경로를 계획하세요!</p>
+    </header>
+    <!-- 헤더 끝 -->
+
+    <!-- 내비게이션 바 시작 -->
+    <nav>
+      <a href="/">홈으로</a>
+      <a href="/map">지도 보기</a>
+      <a href="/generator-driving">경로 찾기</a>
+    </nav>
+    <!-- 내비게이션 바 끝 -->
+
+    <!-- 메인 콘텐츠 시작 -->
+    <main>
+      <!-- 지도 제목 -->
+      <h2>지도 보기</h2>
+
+      <!-- 사용자 ID 입력 폼 -->
+      <div class="user-input-container">
+        <input type="text" id="userIdInput" placeholder="사용자 ID 입력" />
+        <button id="searchUserPathButton">사용자 이동 검색</button>
+      </div>
+
+      <!-- 체크 박스 추가 -->
+      <div class="checkbox-container">
+        <label for="traffic">
+          <input
+            type="checkbox"
+            id="traffic"
+            name="traffic"
+            checked="checked"
+          />
+          돌발교통
+        </label>
+        <label for="people">
+          <input type="checkbox" id="people" name="people" checked="checked" />
+          보행자사고
+        </label>
+        <label for="dog">
+          <input type="checkbox" id="dog" name="dog" checked="checked" />
+          반려동물
+        </label>
+      </div>
+
+      <!-- 지도 영역 -->
+      <div id="map">
+        <div class="button-container">
+          <button id="toggle-location-button">
+            <i class="fas fa-location-arrow"></i> 위치 추적 토글
+          </button>
+          <button id="recenter-button">
+            <i class="fas fa-sync-alt"></i> 지도 중심 재검색
+          </button>
+        </div>
+      </div>
+    </main>
+    <!-- 메인 콘텐츠 끝 -->
+
+    <!-- 모달 시작 -->
+    <div id="userPathModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>이동 경로 선택</h2>
+          <span class="close">&times;</span>
+        </div>
+        <ul id="userPathList" class="modal-list">
+          <!-- 이동 경로 목록이 여기 추가됩니다 -->
+        </ul>
+      </div>
+    </div>
+    <!-- 모달 끝 -->
+
+    <!-- 푸터 시작 -->
+    <footer id="contact">
+      <p>
+        이 프로젝트는 오픈 소스로 개발되었습니다. 자세한 내용은 GitHub에서
+        확인하세요.
+      </p>
+      <div class="social-media">
+        <a
+          href="https://github.com/lahuman/traffic-alert"
+          target="_blank"
+          aria-label="GitHub"
+        >
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+      <p>
+        <a
+          href="https://github.com/lahuman/traffic-alert/blob/main/terms.md"
+          target="_blank"
+          >이용약관</a
+        >
+      </p>
+    </footer>
+    <!-- 푸터 끝 -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- 기존의 스크립트 코드 -->
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      const map = L.map("map").setView([37.5665, 126.978], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      const startIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-play" style="color: green; font-size: 24px;"></i>', // Start icon (green play icon)
+        iconSize: [32, 32],
       });
-    }
 
+      const endIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-stop" style="color: red; font-size: 24px;"></i>', // End icon (red stop icon)
+        iconSize: [32, 32],
+      });
 
-    async function fetchData(url, icon) {
-      try {
+      const walkIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-walking" style="color: orange; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      const trafficIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-car" style="color: red; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 동물약국 (Animal Pharmacy)
+      const animalPharmacyIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-pills" style="color: green; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 동물병원 (Animal Hospital)
+      const animalHospitalIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-paw" style="color: red; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 문예회관 (Culture Center)
+      const cultureCenterIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-theater-masks" style="color: purple; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 미술관 (Art Gallery)
+      const artGalleryIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-palette" style="color: orange; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 박물관 (Museum)
+      const museumIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-landmark" style="color: brown; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 반려동물용품 (Pet Supplies)
+      const petSuppliesIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-bone" style="color: blue; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 식당 (Restaurant)
+      const restaurantIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-utensils" style="color: darkorange; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 여행지 (Travel Destination)
+      const travelDestinationIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-mountain" style="color: teal; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 위탁관리 (Custody Management)
+      const custodyManagementIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-home" style="color: lightblue; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 카페 (Cafe)
+      const cafeIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-coffee" style="color: sienna; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 펜션 (Pension)
+      const pensionIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-home" style="color: lightgreen; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 호텔 (Hotel)
+      const hotelIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-hotel" style="color: navy; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      // 미용
+      var groomingIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-cut" style="color: pink; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      var defaultIcon = L.divIcon({
+        className: "custom-icon",
+        html: '<i class="fas fa-map-marker-alt" style="color: gray; font-size: 24px;"></i>',
+        iconSize: [32, 32],
+      });
+
+      function getIconByCategory(category) {
+        switch (category) {
+          case "동물약국":
+            return animalPharmacyIcon;
+          case "동물병원":
+            return animalHospitalIcon;
+          case "문예회관":
+            return cultureCenterIcon;
+          case "미술관":
+            return artGalleryIcon;
+          case "박물관":
+            return museumIcon;
+          case "반려동물용품":
+            return petSuppliesIcon;
+          case "식당":
+            return restaurantIcon;
+          case "여행지":
+            return travelDestinationIcon;
+          case "위탁관리":
+            return custodyManagementIcon;
+          case "까페":
+          case "카페": // '카페'로 입력되는 경우도 처리
+            return cafeIcon;
+          case "펜션":
+            return pensionIcon;
+          case "호텔":
+            return hotelIcon;
+          case "미용":
+            return groomingIcon;
+          default:
+            console.warn(`Unknown category: ${category}`);
+            return defaultIcon;
+        }
+      }
+
+      let userMarker;
+      let radiusCircle;
+      let locationIntervalId;
+
+      function formatDate(isoDateString) {
+        const date = new Date(isoDateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+      }
+
+      function createMarker({
+        store_name,
+        type_nm,
+        post_num,
+        phone_num,
+        web_site,
+        day_off,
+        operating_hours,
+        paking_yn,
+        price_num,
+        latitude,
+        longitude,
+        title,
+        address,
+        start_dtm,
+        end_dtm,
+        update_dtm,
+        icon,
+        year,
+        occxrrnc_cnt,
+      }) {
+        if (icon == "PET") {
+          const marker = L.marker([latitude, longitude], {
+            icon: getIconByCategory(type_nm),
+          }).addTo(map);
+
+          var popupContent = `<b>${store_name ? store_name : address}</b><br>`;
+          if (type_nm) popupContent += `업종: ${type_nm}<br>`;
+          if (address) popupContent += `주소: ${address}<br>`;
+          if (phone_num) popupContent += `전화번호: ${phone_num}<br>`;
+          if (web_site)
+            popupContent += `웹사이트: <a href="${web_site}" target="_blank">${web_site}</a><br>`;
+          if (day_off) popupContent += `휴무일: ${day_off}<br>`;
+          if (operating_hours)
+            popupContent += `운영 시간: ${operating_hours}<br>`;
+          if (paking_yn)
+            popupContent += `주차 가능: ${
+              paking_yn === "Y" ? "예" : "아니오"
+            }<br>`;
+          if (price_num) popupContent += `가격 정보: ${price_num}<br>`;
+
+          marker.bindPopup(popupContent);
+        } else {
+          const marker = L.marker([latitude, longitude], { icon }).addTo(map);
+
+          let popupContent = `<b>${title ? title : address}</b><br>`;
+          if (start_dtm) popupContent += `Start: ${formatDate(start_dtm)}<br>`;
+          if (end_dtm) popupContent += `End: ${formatDate(end_dtm)}<br>`;
+          if (update_dtm)
+            popupContent += `Last Updated: ${formatDate(update_dtm)}<br>`;
+          if (occxrrnc_cnt)
+            popupContent += `Occurrence Count: ${occxrrnc_cnt}<br>`;
+          if (year) popupContent += `Year: ${year}<br>`;
+
+          marker.bindPopup(popupContent);
+        }
+      }
+
+      // 사용자 경로를 그리는 함수
+      function drawUserPath(pathData) {
+        const latLngs = pathData.map((data) => {
+          const wkt = data.user_location;
+          // wkt 데이터를 LatLng로 변환 (가정: POINT 형식의 WKT)
+          const point = wkt.match(/\(([^)]+)\)/)[1].split(" ");
+          return [parseFloat(point[1]), parseFloat(point[0])]; // [latitude, longitude]
+        });
+
+        map.setView(latLngs[0], 15);
+
+        // 경로 폴리라인 그리기
+        L.polyline(latLngs, { color: "blue", weight: 4 }).addTo(map);
+
+        // 경로의 시작과 끝에 마커 표시
+        if (latLngs.length > 0) {
+          const start = latLngs[0];
+          const end = latLngs[latLngs.length - 1];
+          L.marker(start, { icon: startIcon }).bindPopup("Start").addTo(map);
+          L.marker(end, { icon: endIcon }).bindPopup("End").addTo(map);
+        }
+      }
+
+      async function fetchUserPathCall(url) {
         const response = await fetch(url, {
           headers: {
             "Content-Type": "application/json",
             authKey: "<%= authKey %>",
           },
         });
+        return response;
+      }
 
+      async function fetchAlert4Path(url, icon) {
+        const trafficResponse = await fetchUserPathCall(url);
+
+        if (trafficResponse.status !== 200) {
+          return;
+        }
+
+        const trafficData = await trafficResponse.json();
+
+        // 이벤트 마커 찍기
+        trafficData.forEach((incident) => {
+          createMarker({
+            ...incident,
+            icon,
+          });
+        });
+      }
+
+      // 모달 관련 변수 선언
+      const modal = document.getElementById("userPathModal");
+      const modalCloseBtn = document.querySelector(".modal .close");
+      const userPathList = document.getElementById("userPathList");
+
+      // 모달 닫기 이벤트
+      modalCloseBtn.onclick = function () {
+        modal.style.display = "none";
+      };
+
+      // 모달 외부 클릭 시 닫기
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      // 사용자 ID 기반 목록 조회
+      async function fetchUserPathInfo(userId) {
+        const url = `/user-path-info?userId=${userId}`;
+        const response = await fetchUserPathCall(url);
         if (response.status !== 200) {
-          throw new Error("Failed to fetch data");
+          alert("사용자 경로 정보를 가져오는데 실패했습니다.");
+          return;
         }
 
-        const data = await response.json();
-        return data.map((incident) => ({
-          ...incident,
-          icon,
-        }));
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        return [];
-      }
-    }
+        const pathInfoData = await response.json();
 
-    function drawRadiusCircle(lat, lon, radius) {
-      if (radiusCircle) {
-        map.removeLayer(radiusCircle);
-      }
-      radiusCircle = L.circle([lat, lon], {
-        color: "blue",
-        fillColor: "#0000ff",
-        fillOpacity: 0.2,
-        radius: radius,
-      }).addTo(map);
-    }
+        // 목록을 초기화
+        userPathList.innerHTML = "";
 
-    async function changeLocation(lat, lon) {
-      clearMarkers();
-
-      drawRadiusCircle(lat, lon, 5000); // Draw a 5km circle
-
-      const walkAlerts = await fetchData(
-        `/walk-alert?lat=${lat}&lon=${lon}&radius=5000`,
-        walkIcon
-      );
-      walkAlerts.forEach((incident) => createMarker(incident));
-
-      const trafficAlerts = await fetchData(
-        `/traffic-alert?lat=${lat}&lon=${lon}&radius=5000`,
-        trafficIcon
-      );
-      trafficAlerts.forEach((incident) => createMarker(incident));
-
-      const stores = await fetchData(
-        `/pet-store?lat=${lat}&lon=${lon}&radius=500`,
-        "PET"
-      );
-      stores.forEach((incident) => createMarker(incident));
-    }
-
-
-    function startLocationTracking() {
-      if (locationIntervalId) {
-        clearInterval(locationIntervalId);
-      }
-
-      locationIntervalId = setInterval(() => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(onLocationFound, onLocationError);
+        if (pathInfoData.length === 0) {
+          const noDataItem = document.createElement("li");
+          noDataItem.textContent = "이동 경로가 없습니다.";
+          userPathList.appendChild(noDataItem);
         } else {
-          alert("Geolocation is not supported by this browser.");
+          pathInfoData.forEach((item) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = `이동 ID: ${
+              item.movement_id
+            }, 이동 거리: ${item.move_km.toFixed(2)}km, 시작 시간: ${formatDate(
+              item.start_dtm
+            )}`;
+            listItem.dataset.movementId = item.movement_id;
+            listItem.onclick = function () {
+              fetchUserPath(userId, this.dataset.movementId);
+              modal.style.display = "none";
+            };
+            userPathList.appendChild(listItem);
+          });
         }
-      }, 5000);
-    }
 
-    function stopLocationTracking() {
-      if (locationIntervalId) {
-        clearInterval(locationIntervalId);
-        locationIntervalId = null;
-      }
-    }
-
-    function onLocationFound(e) {
-      const { latitude, longitude } = e.coords;
-
-      changeLocation(latitude, longitude);
-      if (userMarker) {
-        map.removeLayer(userMarker);
+        // 모달 창 표시
+        modal.style.display = "block";
       }
 
-      userMarker = L.marker([latitude, longitude], {
-        icon: L.icon({
-          iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-          iconSize: [25, 41],
-          iconAnchor: [12, 41],
-          popupAnchor: [1, -34],
-        }),
-      })
-        .addTo(map)
-        .bindPopup("You are here!")
-        .openPopup();
+      async function fetchUserPath(userId, movementId) {
+        clearMarkers();
 
-      map.setView([latitude, longitude], 15);
+        const url = `/user-path?userId=${userId}&movementId=${movementId}`;
+        const response = await fetchUserPathCall(url);
+        if (response.status !== 200) {
+          alert("Failed to fetch user path");
+          return;
+        }
 
+        const userPathData = await response.json();
 
-    }
+        // 사용자 경로 그리기
+        drawUserPath(userPathData);
 
-    function onLocationError(e) {
-      console.error("Error retrieving location:", e.message);
-      const button = document.getElementById("toggle-location-button");
-      button.classList.remove("active");
-      button.innerHTML = '<i class="fas fa-location-arrow"></i> Toggle Location Tracking';
-      stopLocationTracking();
-      alert("Unable to retrieve your location.");
-    }
+        if (document.getElementById("traffic").checked) {
+          await fetchAlert4Path(
+            `/user-path-traffic-alert?userId=${userId}&movementId=${movementId}`,
+            trafficIcon
+          );
+        }
+        if (document.getElementById("people").checked) {
+          await fetchAlert4Path(
+            `/user-path-walk-alert?userId=${userId}&movementId=${movementId}`,
+            walkIcon
+          );
+        }
 
+        if (document.getElementById("dog").checked) {
+          await fetchAlert4Path(
+            `/user-path-pet-store?userId=${userId}&movementId=${movementId}`,
+            "PET"
+          );
+        }
+      }
+      document
+        .getElementById("searchUserPathButton")
+        .addEventListener("click", () => {
+          const userId = document.getElementById("userIdInput").value;
+          if (userId) {
+            fetchUserPathInfo(userId);
+          } else {
+            alert("Please enter ID.");
+          }
+        });
 
-    document.getElementById("recenter-button").addEventListener("click", () => {
-      const center = map.getCenter();
-      changeLocation(center.lat, center.lng);
-    });
+      function clearMarkers() {
+        if (radiusCircle) {
+          map.removeLayer(radiusCircle);
+        }
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+            map.removeLayer(layer);
+          }
+        });
+      }
 
-    document.getElementById("toggle-location-button").addEventListener("click", () => {
-      const button = document.getElementById("toggle-location-button");
+      async function fetchData(url, icon) {
+        try {
+          const response = await fetch(url, {
+            headers: {
+              "Content-Type": "application/json",
+              authKey: "<%= authKey %>",
+            },
+          });
 
-      if (button.classList.contains("active")) {
+          if (response.status !== 200) {
+            throw new Error("Failed to fetch data");
+          }
+
+          const data = await response.json();
+          return data.map((incident) => ({
+            ...incident,
+            icon,
+          }));
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          return [];
+        }
+      }
+
+      function drawRadiusCircle(lat, lon, radius) {
+        if (radiusCircle) {
+          map.removeLayer(radiusCircle);
+        }
+        radiusCircle = L.circle([lat, lon], {
+          color: "blue",
+          fillColor: "#0000ff",
+          fillOpacity: 0.2,
+          radius: radius,
+        }).addTo(map);
+      }
+
+      async function changeLocation(lat, lon) {
+        clearMarkers();
+
+        drawRadiusCircle(lat, lon, 5000); // Draw a 5km circle
+
+        if (document.getElementById("people").checked) {
+          const walkAlerts = await fetchData(
+            `/walk-alert?lat=${lat}&lon=${lon}&radius=5000`,
+            walkIcon
+          );
+          walkAlerts.forEach((incident) => createMarker(incident));
+        }
+
+        if (document.getElementById("traffic").checked) {
+          const trafficAlerts = await fetchData(
+            `/traffic-alert?lat=${lat}&lon=${lon}&radius=5000`,
+            trafficIcon
+          );
+          trafficAlerts.forEach((incident) => createMarker(incident));
+        }
+        if (document.getElementById("dog").checked) {
+          const stores = await fetchData(
+            `/pet-store?lat=${lat}&lon=${lon}&radius=500`,
+            "PET"
+          );
+          stores.forEach((incident) => createMarker(incident));
+        }
+      }
+
+      function startLocationTracking() {
+        if (locationIntervalId) {
+          clearInterval(locationIntervalId);
+        }
+
+        locationIntervalId = setInterval(() => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              onLocationFound,
+              onLocationError
+            );
+          } else {
+            alert("Geolocation is not supported by this browser.");
+          }
+        }, 5000);
+      }
+
+      function stopLocationTracking() {
+        if (locationIntervalId) {
+          clearInterval(locationIntervalId);
+          locationIntervalId = null;
+        }
+      }
+
+      function onLocationFound(e) {
+        const { latitude, longitude } = e.coords;
+
+        changeLocation(latitude, longitude);
+        if (userMarker) {
+          map.removeLayer(userMarker);
+        }
+
+        userMarker = L.marker([latitude, longitude], {
+          icon: L.icon({
+            iconUrl:
+              "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+          }),
+        })
+          .addTo(map)
+          .bindPopup("You are here!")
+          .openPopup();
+
+        map.setView([latitude, longitude], 15);
+      }
+
+      function onLocationError(e) {
+        console.error("Error retrieving location:", e.message);
+        const button = document.getElementById("toggle-location-button");
         button.classList.remove("active");
-        button.innerHTML = '<i class="fas fa-location-arrow"></i> Toggle Location Tracking';
+        button.innerHTML =
+          '<i class="fas fa-location-arrow"></i> Toggle Location Tracking';
         stopLocationTracking();
-      } else {
-        button.classList.add("active");
-        button.innerHTML = '<i class="fas fa-stop"></i> Stop Tracking';
-        startLocationTracking();
+        alert("Unable to retrieve your location.");
       }
-    });
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(onLocationFound, onLocationError);
-    } else {
-      alert("Geolocation is not supported by this browser.");
-    }
-  </script>
-</body>
+      document
+        .getElementById("recenter-button")
+        .addEventListener("click", () => {
+          const center = map.getCenter();
+          changeLocation(center.lat, center.lng);
+        });
 
+      document
+        .getElementById("toggle-location-button")
+        .addEventListener("click", () => {
+          const button = document.getElementById("toggle-location-button");
+
+          if (button.classList.contains("active")) {
+            button.classList.remove("active");
+            button.innerHTML =
+              '<i class="fas fa-location-arrow"></i> Toggle Location Tracking';
+            stopLocationTracking();
+          } else {
+            button.classList.add("active");
+            button.innerHTML = '<i class="fas fa-stop"></i> Stop Tracking';
+            startLocationTracking();
+          }
+        });
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          onLocationFound,
+          onLocationError
+        );
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    </script>
+  </body>
 </html>
