@@ -11,6 +11,9 @@ app.use(express.json());
 // EJS 템플릿 엔진 설정
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "public"));
+// 정적 파일 제공 설정
+app.use(express.static(path.join(__dirname, 'public/asserts')));
+
 
 // 기본 path를 /public으로 설정(css, javascript 등의 파일 사용을 위해)
 // app.use(express.static(__dirname + '/public'));
@@ -30,7 +33,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/map", (req, res) => {
-  res.render("map", { authKey: process.env.AUTH_KEY });
+  res.render("map_kakao", { authKey: process.env.AUTH_KEY });
 });
 
 
@@ -93,14 +96,14 @@ app.get("/pet-store", authMiddleware, async (req, res) => {
   const nearbyEvent = await pgExecute`
        SELECT
           ST_DISTANCE(
-              geography(ST_SetSRID(ST_Point(LONGITUDE, LATITUDE), 4326)),
+              geom,
               geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326))
           )::double precision AS distance,
           *
       FROM store_info
       WHERE
           ST_DWithin(
-              geography(ST_SetSRID(ST_Point(LONGITUDE, LATITUDE), 4326)),
+              geom,
               geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)),
               ${isNaN(radius) ? parseFloat(process.env.STORE_RADIUS || '50') : radius}
           )
