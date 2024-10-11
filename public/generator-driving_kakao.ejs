@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>실시간 교통 알림 서비스 - 경로 생성</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Kakao Map JavaScript API -->
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=8b66476c28fc24a77351a868703545a9&libraries=services,drawing"></script>
+  <!-- Font Awesome CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+  <style>
+    /* 기본 스타일 */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    /* 헤더 스타일 */
+    header {
+      background-color: #ff5722;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    /* 내비게이션 스타일 */
+    nav {
+      background-color: #fff3e0;
+      padding: 10px;
+      text-align: center;
+    }
+    nav a {
+      margin: 0 15px;
+      color: #ff5722;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    /* 메인 컨텐츠 스타일 */
+    main {
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+    /* 지도 스타일 */
+    #map {
+      height: 600px;
+      width: 100%;
+      position: relative;
+      margin-top: 20px;
+    }
+    /* 사용자 입력 폼 스타일 */
+    .user-input-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px auto;
+      justify-content: center;
+      align-items: center;
+    }
+    .user-input-container input[type="text"] {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      width: 200px;
+    }
+    .user-input-container button {
+      padding: 10px 15px;
+      background-color: #ff5722;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .user-input-container button:hover {
+      background-color: #e64a19;
+    }
+    /* 위치 표시 */
+    #selectedLocationDisplay {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    /* 푸터 스타일 */
+    footer {
+      background-color: #ffe0b2;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    footer a {
+      color: #ff5722;
+      text-decoration: none;
+      margin: 0 5px;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    .social-media {
+      margin-top: 10px;
+    }
+    .social-media i {
+      font-size: 24px;
+      color: #ff5722;
+      margin: 0 10px;
+    }
+    .social-media a:hover i {
+      color: #e64a19;
+    }
+    /* 반응형 디자인 */
+    @media (max-width: 600px) {
+      nav a {
+        display: block;
+        margin: 10px 0;
+      }
+      .user-input-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .user-input-container input[type="text"] {
+        width: 100%;
+      }
+      .social-media i {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 헤더 시작 -->
+  <header>
+    <h1>실시간 교통 알림 서비스</h1>
+    <p>최신 교통 정보를 한눈에 확인하고 경로를 계획하세요!</p>
+  </header>
+  <!-- 헤더 끝 -->
+
+  <!-- 내비게이션 바 시작 -->
+  <nav>
+    <a href="/">홈으로</a>
+    <a href="/map">지도 보기</a>
+    <a href="/generator-driving">경로 찾기</a>
+  </nav>
+  <!-- 내비게이션 바 끝 -->
+
+  <!-- 메인 콘텐츠 시작 -->
+  <main>
+    <!-- 제목 -->
+    <h2>경로 생성</h2>
+
+    <!-- 사용자 입력 폼 -->
+    <div class="user-input-container">
+      <input type="text" id="userIdInput" placeholder="사용자 ID 입력" />
+      <input type="text" id="movementIdInput" placeholder="이동 ID 입력" />
+      <input type="text" id="startLocationInput" class="button" placeholder="출발지 선택" readonly />
+      <input type="text" id="endLocationInput" class="button" placeholder="도착지 선택" readonly />
+      <button id="getDrivingDataButton">경로 생성</button>
+    </div>
+
+    <!-- 선택된 위치 표시 -->
+    <div id="selectedLocationDisplay"></div>
+
+    <!-- 지도 영역 -->
+    <div id="map"></div>
+  </main>
+  <!-- 메인 콘텐츠 끝 -->
+
+  <!-- 푸터 시작 -->
+  <footer id="contact">
+    <p>이 프로젝트는 오픈 소스로 개발되었습니다. 자세한 내용은 GitHub에서 확인하세요.</p>
+    <div class="social-media">
+      <a href="https://github.com/lahuman/traffic-alert" target="_blank" aria-label="GitHub">
+        <i class="fab fa-github"></i>
+      </a>
+    </div>
+    <p>
+      <a href="https://github.com/lahuman/traffic-alert/blob/main/terms.md" target="_blank">이용약관</a>
+    </p>
+  </footer>
+  <!-- 푸터 끝 -->
+
+  <!-- JavaScript 코드 -->
+  <script>
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+        mapOption = { 
+            center: new kakao.maps.LatLng(37.5665, 126.978), // 지도의 중심좌표
+            level: 7 // 지도의 확대 레벨
+        }; 
+
+    var map = new kakao.maps.Map(mapContainer, mapOption); // 지도를 생성합니다
+
+    // 마커를 클릭한 위치에 표시하기 위한 변수
+    let startMarker = null;
+    let endMarker = null;
+    let selectingStartLocation = false;
+    let selectingEndLocation = false;
+    let startLocation = null;
+    let endLocation = null;
+
+    // 출발지 선택 버튼 클릭 이벤트
+    document.getElementById("startLocationInput").addEventListener("click", () => {
+      selectingStartLocation = true;
+      selectingEndLocation = false;
+      document.getElementById("selectedLocationDisplay").innerText = "지도를 클릭하여 출발지를 선택하세요.";
+    });
+
+    // 도착지 선택 버튼 클릭 이벤트
+    document.getElementById("endLocationInput").addEventListener("click", () => {
+      selectingStartLocation = false;
+      selectingEndLocation = true;
+      document.getElementById("selectedLocationDisplay").innerText = "지도를 클릭하여 도착지를 선택하세요.";
+    });
+
+    // 지도 클릭 이벤트
+    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {        
+        var latlng = mouseEvent.latLng; 
+
+        if (selectingStartLocation) {
+          startLocation = latlng;
+          selectingStartLocation = false;
+          document.getElementById("selectedLocationDisplay").innerText = `출발지: ${startLocation.getLat().toFixed(5)}, ${startLocation.getLng().toFixed(5)}`;
+          document.getElementById("startLocationInput").value = `${startLocation.getLat().toFixed(5)}, ${startLocation.getLng().toFixed(5)}`;
+          
+          if (startMarker) {
+            startMarker.setPosition(latlng);
+          } else {
+            startMarker = new kakao.maps.Marker({
+              position: latlng,
+              map: map,
+              title: "출발지",
+              image: new kakao.maps.MarkerImage(
+                'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png', 
+                new kakao.maps.Size(24, 35)
+              )
+            });
+          }
+        } else if (selectingEndLocation) {
+          endLocation = latlng;
+          selectingEndLocation = false;
+          document.getElementById("selectedLocationDisplay").innerText = `도착지: ${endLocation.getLat().toFixed(5)}, ${endLocation.getLng().toFixed(5)}`;
+          document.getElementById("endLocationInput").value = `${endLocation.getLat().toFixed(5)}, ${endLocation.getLng().toFixed(5)}`;
+          
+          if (endMarker) {
+            endMarker.setPosition(latlng);
+          } else {
+            endMarker = new kakao.maps.Marker({
+              position: latlng,
+              map: map,
+              title: "도착지",
+              image: new kakao.maps.MarkerImage(
+                'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png', 
+                new kakao.maps.Size(24, 35)
+              )
+            });
+          }
+        }
+    });
+
+    // 경로 생성 버튼 클릭 이벤트
+    document.getElementById("getDrivingDataButton").addEventListener("click", () => {
+      const userId = document.getElementById("userIdInput").value;
+      const movementId = document.getElementById("movementIdInput").value;
+
+      if (!userId || !movementId) {
+        alert("사용자 ID와 이동 ID를 입력해주세요.");
+        return;
+      }
+
+      if (!startLocation || !endLocation) {
+        alert("출발지와 도착지를 모두 선택해주세요.");
+        return;
+      }
+
+      const data = {
+        userId: userId,
+        movementId: movementId,
+        startLocation: {
+          lat: startLocation.getLat(),
+          lng: startLocation.getLng()
+        },
+        endLocation: {
+          lat: endLocation.getLat(),
+          lng: endLocation.getLng()
+        }
+      };
+
+      fetch('/generator-driving', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          authKey: "<%= authKey %>",
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('경로 생성에 실패했습니다.');
+        }
+        return response.json();
+      })
+      .then(result => {
+        alert('경로가 성공적으로 생성되었습니다.');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('경로 생성 중 오류가 발생했습니다.');
+      });
+    });
+  </script>
+</body>
+</html>

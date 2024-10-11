@@ -38,7 +38,7 @@ app.get("/map", (req, res) => {
 
 
 app.get("/generator-driving", (req, res) => {
-  res.render("generator-driving", { authKey: process.env.AUTH_KEY });
+  res.render("generator-driving_kakao", { authKey: process.env.AUTH_KEY });
 });
 
 
