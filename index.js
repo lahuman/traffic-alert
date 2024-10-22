@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const cors = require("cors")
 
 const pgExecute = require("./db");
 const app = express();
@@ -7,6 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cors())
+
 
 // EJS 템플릿 엔진 설정
 app.set("view engine", "ejs");
@@ -78,6 +81,46 @@ app.get("/traffic-alert", authMiddleware, async (req, res) => {
           AND END_DTM >= NOW()
       ORDER BY distance;
         `;
+
+  if (nearbyEvent.length > 0) {
+    res.json(nearbyEvent);
+  } else {
+    res.status(204).send("No Content: No accidents nearby");
+  }
+});
+
+
+app.get("/cctv", authMiddleware, async (req, res) => {
+  const { lat, lon, radius } = getParameter(req);
+  if (!lat || !lon) {
+    return res.status(400).send("Bad Request: Missing or invalid lat/lon");
+  }
+
+  const nearbyEvent = await pgExecute`
+                WITH filtered_cctv AS (
+                  SELECT 
+                      WA.*
+                  FROM 
+                      walk_alert WA
+                  WHERE
+                      ST_DWithin(
+                          geography(ST_SetSRID(ST_Point(WA.LONGITUDE, WA.LATITUDE), 4326)),
+                          geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326)),
+                          ${isNaN(radius) ? parseFloat(process.env.WALK_RADIUS || '100') : radius}
+                      )
+              )
+              SELECT 
+                  ST_DISTANCE(
+                      geography(ST_SetSRID(ST_Point(WA.LONGITUDE, WA.LATITUDE), 4326)),
+                      geography(ST_SetSRID(ST_Point(${lon}, ${lat}), 4326))
+                  )::double precision AS distance,
+                  WA.*
+              FROM 
+                  filtered_cctv WA
+              ORDER BY 
+                  distance;
+    `;
+
 
   if (nearbyEvent.length > 0) {
     res.json(nearbyEvent);
@@ -318,6 +361,46 @@ app.get("/user-path-pet-store", authMiddleware, async (req, res) => {
       ORDER BY 
           WA.ID
     `;
+
+    if (nearbyEvent.length > 0) {
+      res.json(nearbyEvent);
+    } else {
+      res.status(204).send("No Content: No user path");
+    }
+  } catch (error) {
+    console.error("Error fetching user path:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+app.get("/user-path-cctv", authMiddleware, async (req, res) => {
+  try {
+    const {userId, movementId}  = req.query;
+
+    // userId가 존재하는지 검증
+    if (!userId) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+
+    // 템플릿 리터럴 태그로 변경
+    const nearbyEvent = await pgExecute`
+    SELECT DISTINCT ON (WA.ID)
+        WA.*
+    FROM 
+        CCTV_INFO WA
+    LEFT JOIN 
+        USER_PATH_POINTS UPP
+    ON 
+        ST_DWithin(
+            UPP.POINT, 
+            ST_SetSRID(ST_Point(WA.LONGITUDE, WA.LATITUDE), 4326), 
+            500 / 111320.0 -- 500m 거리 내의 WALK_ALERT
+        )
+    WHERE 
+        UPP.USER_ID = ${userId}::VARCHAR
+        AND UPP.MOVEMENT_ID = ${movementId}::VARCHAR
+  `;
 
     if (nearbyEvent.length > 0) {
       res.json(nearbyEvent);

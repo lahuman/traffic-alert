@@ -494,6 +494,8 @@
     const startMarkerImage = new kakao.maps.MarkerImage('/start.png', new kakao.maps.Size(32, 36), { offset: new kakao.maps.Point(14, 26) })
     const theendMarkerImage = new kakao.maps.MarkerImage('/the-end.png', new kakao.maps.Size(32, 36), { offset: new kakao.maps.Point(14, 26) })
 
+    const cctvMarkerImage = new kakao.maps.MarkerImage('/cctv.png', new kakao.maps.Size(32, 36), { offset: new kakao.maps.Point(14, 26) })
+
 
     // 지도 생성
     var mapContainer = document.getElementById('map'),
@@ -641,7 +643,9 @@
 
       map.setCenter(latLngs[0]);
 
-      var polyline = new kakao.maps.Polyline({
+      if (polyline) polyline.setMap(null);
+
+      polyline = new kakao.maps.Polyline({
         path: latLngs,
         strokeWeight: 4,
         strokeColor: 'blue',
@@ -761,8 +765,10 @@
 
       drawUserPath(userPathData);
 
-      if (document.getElementById("traffic").checked)
+      if (document.getElementById("traffic").checked) {
         await fetchAlert4Path(`/user-path-traffic-alert?userId=${userId}&movementId=${movementId}`, trafficMarkerImage);
+        await fetchAlert4Path(`/user-path-cctv?userId=${userId}&movementId=${movementId}`, cctvMarkerImage);
+      }
       if (document.getElementById("people").checked)
         await fetchAlert4Path(`/user-path-walk-alert?userId=${userId}&movementId=${movementId}`, peopleMarkerImage);
       if (document.getElementById("dog").checked)
@@ -830,6 +836,12 @@
           trafficMarkerImage
         );
         trafficAlerts.forEach((incident) => createMarker(incident));
+
+        const cctvList = await fetchData(
+          `/cctv?lat=${lat}&lon=${lon}&radius=5000`,
+          cctvMarkerImage
+        );
+        cctvList.forEach((incident) => createMarker(incident));
       }
       if (document.getElementById("dog").checked) {
         const stores = await fetchData(
