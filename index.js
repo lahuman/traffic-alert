@@ -101,7 +101,7 @@ app.get("/cctv", authMiddleware, async (req, res) => {
                   SELECT 
                       WA.*
                   FROM 
-                      walk_alert WA
+                      cctv_info WA
                   WHERE
                       ST_DWithin(
                           geography(ST_SetSRID(ST_Point(WA.LONGITUDE, WA.LATITUDE), 4326)),

@@ -567,6 +567,7 @@
       icon,
       year,
       occxrrnc_cnt,
+      id, cctv_nm, center_nm
     }) {
       const position = new kakao.maps.LatLng(latitude, longitude);
 
@@ -581,12 +582,13 @@
       let popupContent = '<div class="wrap">' +
         '    <div class="info">' +
         '        <div class="title">' +
-        (store_name ? store_name : title ? title : `[보행사고] ${year} 년도 ${occxrrnc_cnt} 건`) +
+        (cctv_nm? cctv_nm : store_name ? store_name : title ? title : `[보행사고] ${year} 년도 ${occxrrnc_cnt} 건`) +
         '            <div class="close" onclick="closeOverlay(' + (overlays.length) + ')" title="닫기"></div>' +
         '        </div>' +
         '        <div class="body">' +
         '            <div class="desc">';
 
+      
       if (type_nm) popupContent += `<div class="ellipsis"> 업종: ${type_nm}</div>`;
       if (address) popupContent += `<div class="ellipsis"> 주소: ${address}</div>`;
       if (phone_num) popupContent += `<div class="jibun ellipsis"> 전화번호: ${phone_num}</div>`;
@@ -598,6 +600,7 @@
       if (start_dtm) popupContent += `<div class="jibun ellipsis"> Start: ${formatDate(start_dtm)}</div>`;
       if (end_dtm) popupContent += `<div class="jibun ellipsis"> End: ${formatDate(end_dtm)}</div>`;
       if (update_dtm) popupContent += `<div class="jibun ellipsis"> Last Updated: ${formatDate(update_dtm)}</div>`;
+      if (cctv_nm) popupContent += `<div class="jibun ellipsis"> <a href="javascript:alert(\"${id}\"")">${cctv_nm}-${center_nm}</a></div>`;
 
       popupContent += '            </div>' +
         '        </div>' +
