@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/map", (req, res) => {
-  res.render("map_kakao", { authKey: process.env.AUTH_KEY });
+  res.render("map_kakao", { authKey: process.env.AUTH_KEY, uticKey: process.env.UTIC_KEY });
 });
 
 
@@ -501,6 +501,34 @@ app.get("/walk-alert", authMiddleware, async (req, res) => {
     res.status(204).send("No Content: No accidents nearby");
   }
 });
+
+app.get("/cctv_info", authMiddleware, async (req, res) => {
+  const id = req.query.id;
+  if (id == undefined ) {
+    return res.status(400).send("Bad Request: Missing or invalid id");
+  }
+  const response = await fetch(`https://www.utic.go.kr/map/getCctvInfoById.do?cctvId=${id}`, {
+    "headers": {
+      "accept": "*/*",
+      "accept-language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+      "sec-ch-ua": "\"Google Chrome\";v=\"129\", \"Not=A?Brand\";v=\"8\", \"Chromium\";v=\"129\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-origin",
+      "x-requested-with": "XMLHttpRequest",
+      "cookie": "LayerIncidentViewList=%7B%22%uC0AC%uACE0%22%3A%22A0402%22%2C%22%uACF5%uC0AC%22%3A%22A0402%22%2C%22%uD589%uC0AC%22%3A%22A0402%22%2C%22%uAE30%uC0C1%22%3A%22A0402%22%2C%22%uD1B5%uC81C%22%3A%22A0402%22%2C%22%uC7AC%uB09C%22%3A%22A0402%22%7D; JSESSIONID=dk94dF4E1hpEon4ZPnkS8zSxMHEKRkN2QgOZdEipx89CsqETv1wbMUJTyh1lXDbu.utiweb2_servlet_engine1",
+      "Referer": "https://www.utic.go.kr/guide/cctvOpenData.do?key=d41d8cd98f00b204e9800998ecf8427e",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    },
+    "body": null,
+    "method": "GET"
+  });
+  const result = await response.json();
+  res.json(result)
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
