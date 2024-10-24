@@ -564,7 +564,7 @@
         web_site,
         day_off,
         operating_hours,
-        paking_yn,
+        parking_yn,
         price_num,
         latitude,
         longitude,
@@ -591,9 +591,9 @@
           if (day_off) popupContent += `휴무일: ${day_off}<br>`;
           if (operating_hours)
             popupContent += `운영 시간: ${operating_hours}<br>`;
-          if (paking_yn)
+          if (parking_yn)
             popupContent += `주차 가능: ${
-              paking_yn === "Y" ? "예" : "아니오"
+              parking_yn === "Y" ? "예" : "아니오"
             }<br>`;
           if (price_num) popupContent += `가격 정보: ${price_num}<br>`;
 

@@ -603,7 +603,7 @@
       web_site,
       day_off,
       operating_hours,
-      paking_yn,
+      parking_yn,
       price_num,
       latitude,
       longitude,
@@ -643,7 +643,7 @@
       if (web_site && web_site != "정보없음") popupContent += `<div class="jibun ellipsis"> 웹사이트: <a href="${web_site}" target="_blank">${web_site}</a></div>`;
       if (day_off) popupContent += `<div class="jibun ellipsis"> 휴무일: ${day_off}</div>`;
       if (operating_hours) popupContent += `<div class="jibun ellipsis"> 운영 시간: ${operating_hours}</div>`;
-      if (paking_yn) popupContent += `<div class="jibun ellipsis"> 주차 가능: ${paking_yn === 'Y' ? '예' : '아니오'}</div>`;
+      if (parking_yn) popupContent += `<div class="jibun ellipsis"> 주차 가능: ${parking_yn === 'Y' ? '예' : '아니오'}</div>`;
       if (price_num) popupContent += `<div class="jibun ellipsis"> 가격 정보: ${price_num}</div>`;
       if (start_dtm) popupContent += `<div class="jibun ellipsis"> Start: ${formatDate(start_dtm)}</div>`;
       if (end_dtm) popupContent += `<div class="jibun ellipsis"> End: ${formatDate(end_dtm)}</div>`;
